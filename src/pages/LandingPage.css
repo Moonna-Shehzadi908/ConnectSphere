@@ -1,0 +1,207 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f3f4f6;
+}
+
+/* PAGE WRAPPER */
+.page {
+  padding: 30px;
+}
+
+/* HEADER */
+.topHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.menu {
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.signBtn {
+  padding: 10px 22px;
+  border-radius: 25px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+
+  color: black;   /* 👈 FIX */
+  font-weight: 600;
+}
+
+/* MAIN CARD */
+.card {
+  max-width: 1200px;
+  margin: auto;
+  background: #f7efff;
+  border-radius: 30px;
+  padding: 25px;
+  border: 6px solid #e5e7eb;
+}
+
+/* NAVBAR */
+.navBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 15px 20px;
+  border-radius: 20px;
+}
+
+.logo {
+  font-weight: 700;
+  color: #580377;
+  font-size: 18px;
+}
+
+.navLinks {
+  display: flex;
+  gap: 25px;
+}
+
+.navLinks a {
+  text-decoration: none;
+  color: #444;
+  font-weight: 500;
+}
+
+/* HERO TEXT */
+.heroText {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.heroText h2 {
+  font-size: 55px;
+  color: #600384;
+  font-weight: 800;
+}
+
+.heroText p {
+  max-width: 650px;
+  margin: 15px auto;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* BUTTONS */
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.primaryBtn {
+  background: #200289;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.secondaryBtn {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 12px 25px;
+  border-radius: 30px;
+  cursor: pointer;
+
+  color:  #34079e; /* 👈 BLUE TEXT */
+  font-weight: 600;
+}
+
+/* IMAGE */
+.imageBox {
+  margin-top: 40px;
+  position: relative;
+  text-align: center;
+}
+
+.imageBox img {
+  width: 100%;
+  max-width: 900px;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+/* FLOATING CARD */
+.floatingCard {
+  position: absolute;
+  bottom: 20px;
+  left: 50px;
+  background: lightgrey;
+  padding: 15px;
+  border-radius: 15px;
+  width: 200px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  font-size: 14px;
+  color : #6d28d9;
+}
+
+.floatingCard p {
+  margin-top: 5px;
+  color: #141010;
+}
+
+/* FOOTER */
+.bottom {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.bottom h3 {
+  font-size: 30px;
+  color: #111827;  /* 👈 better professional black */
+}
+
+.bottom p {
+  color: #666;
+  margin-top: 5px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .heroText h2 {
+    font-size: 35px;
+  }
+
+  .navBar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .floatingCard {
+    position: static;
+    margin: 15px auto;
+  }
+}
+.secondaryBtn:hover {
+  background: #f0f4ff;
+}
+
+.primaryBtn:hover {
+  background: #5b21b6;
+}
+
+.signBtn:hover {
+  background: #f9fafb;
+}
