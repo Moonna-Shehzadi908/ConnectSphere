@@ -3,8 +3,12 @@ import heroImage from "../assets/landingpage.webp";
 import feature1 from "../assets/company.webp";
 import feature2 from "../assets/mbl.webp";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="landingWrapper">
 
@@ -25,12 +29,21 @@ export default function LandingPage() {
 
           <div className="logo">ConnectSphere</div>
 
-          <nav className="navLinks">
-            <Link to="/">Home</Link>
-            <a href="#">Features</a>
-            <a href="#">Community</a>
-            <a href="#">About</a>
-          </nav>
+        <nav className="navLinks">
+  <Link to="/">Home</Link>
+
+  <button onClick={() => navigate("/home")}>
+    Features
+  </button>
+
+  <button onClick={() => navigate("/home")}>
+    Community
+  </button>
+
+  <button onClick={() => navigate("/home")}>
+    About
+  </button>
+</nav>
 
           <div className="icons">🔔 ✉️ 👤</div>
         </div>
@@ -49,15 +62,21 @@ export default function LandingPage() {
             connections and scale your impact.
           </p>
 
-          <div className="buttons">
-            <button className="primaryBtn">
-              Join The Network
-            </button>
+      <div className="buttons">
+  <button
+    className="primaryBtn"
+    onClick={() => navigate("/home")}
+  >
+    Join The Network
+  </button>
 
-            <button className="secondaryBtn">
-              Explore Communities
-            </button>
-          </div>
+  <button
+    className="secondaryBtn"
+    onClick={() => navigate("/home")}
+  >
+    Explore Communities
+  </button>
+</div>
         </div>
 
         {/* HERO IMAGE */}

@@ -1,0 +1,159 @@
+.homePage {
+  display: grid;
+  grid-template-columns: 240px 1fr 260px;
+  gap: 20px;
+  min-height: 100vh;
+  background: #f5f3ff;
+  padding: 20px;
+}
+
+.sidebar,
+.rightSidebar,
+.feed {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.logo {
+  color: #4f46e5;
+  margin-bottom: 25px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.sidebar li:hover,
+.active {
+  background: #4f46e5;
+  color: white;
+}
+
+.createBtn,
+.backBtn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.createBtn {
+  background: #4f46e5;
+  color: white;
+}
+
+.backBtn {
+  background:#4f46e5;
+}
+
+.feedHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.feedHeader input {
+  width: 70%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+}
+
+.topIcons span {
+  margin-left: 15px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.stories {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.story {
+  text-align: center;
+}
+
+.story img,
+.postHeader img,
+.createPost img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.addStory {
+  width: 50px;
+  height: 50px;
+  background: #4f46e5;
+  color: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+}
+
+.createPost {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.createPost input {
+  flex: 1;
+  padding: 12px;
+}
+
+.createPost button {
+  padding: 12px 18px;
+  border: none;
+  background: #4f46e5;
+  color: white;
+  border-radius: 12px;
+}
+
+.postCard {
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.postHeader {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.postImage {
+  width: 100%;
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.postActions {
+  display: flex;
+  justify-content: space-around;
+}
+
+.postActions span {
+  cursor: pointer;
+}
+
+.card {
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
