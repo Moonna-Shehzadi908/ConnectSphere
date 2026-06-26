@@ -1,0 +1,68 @@
+.authPage {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ebe7f5;
+}
+
+.authCard {
+  width: 400px;
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.authCard h1 {
+  color: #5b21b6;
+  text-align: center;
+  
+}
+
+.authCard h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color : black;
+}
+
+.authCard input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+}
+
+.authCard button {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(90deg,#4f46e5,#9333ea);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.socialBtns {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.socialBtns button {
+  background: white;
+  color: black;
+  border: 1px solid #ddd;
+}
+
+.authCard p {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.authCard span {
+  color: #5b21b6;
+  cursor: pointer;
+  font-weight: bold;
+}
