@@ -1,0 +1,181 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.messagePage {
+  display: flex;
+  height: 100vh;
+  background: #f4f2ff
+}
+
+/* Sidebar */
+.sidebar {
+  width: 230px;
+  background: white;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+}
+
+.logo {
+  color: #4f2df5;
+  margin-bottom: 25px;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar li {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.sidebar li:hover,
+.sidebar .active {
+  background: #4f2df5;
+  color: white;
+}
+
+.createBtn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #4f2df5;
+  color: white;
+  cursor: pointer;
+}
+
+/* Chat list */
+.chatSidebar {
+  width: 300px;
+  background: white;
+  padding: 20px;
+  border-right: 1px solid #ddd;
+}
+
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.chatSidebar input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.chatItem {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.chatItem:hover,
+.selected {
+  background: #f1efff;
+}
+
+.chatItem img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+}
+
+/* Chat window */
+.chatWindow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background: white;
+  border-bottom: 1px solid #ddd;
+}
+
+.userInfo {
+  display: flex;
+  gap: 12px;
+}
+
+.userInfo img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.messagesBox {
+  flex: 1;
+  padding: 25px;
+  overflow-y: auto;
+}
+
+.message {
+  max-width: 320px;
+  padding: 14px;
+  margin-bottom: 15px;
+  border-radius: 18px;
+}
+
+.them {
+  background: white;
+}
+
+.me {
+  background: #4f2df5;
+  color: white;
+  margin-left: auto;
+}
+
+.messageInput {
+  display: flex;
+  padding: 20px;
+  background: white;
+  gap: 10px;
+}
+
+.messageInput input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+}
+
+.messageInput button {
+  width: 50px;
+  border: none;
+  border-radius: 12px;
+  background: #4f2df5;
+  color: white;
+  cursor: pointer;
+}
+.logoutBtn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #ef4444;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  background: #dc2626;
+}

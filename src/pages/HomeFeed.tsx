@@ -4,7 +4,6 @@ import profile from "../assets/company.webp";
 import sarah from "../assets/sarah.jpg";
 import marcus from "../assets/monus.jpg";
 import elens from "../assets/elens.webp";
-
 import { useNavigate } from "react-router-dom";
 
 export default function HomeFeed() {
@@ -25,23 +24,48 @@ export default function HomeFeed() {
     setLikes(likes + 1);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    alert("Logged out successfully!");
+    navigate("/signin");
+  };
+
   return (
-    <div className="homePage">
+    <div className="homeContainer">
       {/* Sidebar */}
       <aside className="sidebar">
-        <h2 className="logo">ConnectSphere</h2>
+        <h2>ConnectSphere</h2>
 
         <ul>
-          <li className="active" onClick={() => alert("Feed Opened")}>📄 Feed</li>
-          <li onClick={() => alert("Messaging Coming Soon")}>💬 Messaging</li>
-          <li onClick={() => alert("Analytics Coming Soon")}>📊 Analytics</li>
-          <li onClick={() => alert("Monetization Coming Soon")}>💰 Monetization</li>
-          <li onClick={() => alert("Moderation Coming Soon")}>🛡 Moderation</li>
-          <li onClick={() => alert("System Coming Soon")}>⚙ System</li>
+          <li className="active">📄 Feed</li>
+
+          <li onClick={() => navigate("/messages")}>
+            💬 Messaging
+          </li>
+
+          <li onClick={() => alert("Analytics coming soon")}>
+            📊 Analytics
+          </li>
+
+          <li onClick={() => alert("Monetization coming soon")}>
+            💰 Monetization
+          </li>
+
+          <li onClick={() => alert("Moderation coming soon")}>
+            🛡 Moderation
+          </li>
+
+          <li onClick={() => alert("System coming soon")}>
+            ⚙ System
+          </li>
         </ul>
 
         <button className="createBtn" onClick={handlePost}>
           Create Post
+        </button>
+
+        <button className="logoutBtn" onClick={handleLogout}>
+          Logout
         </button>
 
         <button className="backBtn" onClick={() => navigate("/")}>
@@ -56,7 +80,7 @@ export default function HomeFeed() {
 
           <div className="topIcons">
             <span onClick={() => alert("Notifications")}>🔔</span>
-            <span onClick={() => alert("Messages")}>✉️</span>
+            <span onClick={() => navigate("/messages")}>✉️</span>
             <span onClick={() => alert("Profile")}>👤</span>
           </div>
         </div>
@@ -66,24 +90,24 @@ export default function HomeFeed() {
           <div className="story addStory">+</div>
 
           <div className="story">
-            <img src={sarah} alt="" />
+            <img src={sarah} alt="Sarah" />
             <span>Sarah</span>
           </div>
 
           <div className="story">
-            <img src={marcus} alt="" />
+            <img src={marcus} alt="Marcus" />
             <span>Marcus</span>
           </div>
 
           <div className="story">
-            <img src={elens} alt="" />
+            <img src={elens} alt="Elena" />
             <span>Elena</span>
           </div>
         </div>
 
         {/* Create Post */}
         <div className="createPost">
-          <img src={profile} alt="" />
+          <img src={profile} alt="Profile" />
 
           <input
             type="text"
@@ -95,10 +119,10 @@ export default function HomeFeed() {
           <button onClick={handlePost}>Post</button>
         </div>
 
-        {/* Post Card */}
+        {/* Post */}
         <div className="postCard">
           <div className="postHeader">
-            <img src={profile} alt="" />
+            <img src={profile} alt="Profile" />
 
             <div>
               <h4>Alex Rivera</h4>
@@ -110,12 +134,16 @@ export default function HomeFeed() {
             Just finished a deep dive into new spatial computing design trends.
           </p>
 
-          <img src={profile} alt="" className="postImage" />
+          <img src={profile} alt="Post" className="postImage" />
 
           <div className="postActions">
             <span onClick={handleLike}>👍 Like ({likes})</span>
-            <span onClick={() => alert("Comment feature later")}>💬 Comment</span>
-            <span onClick={() => alert("Share feature later")}>↗ Share</span>
+            <span onClick={() => alert("Comment feature later")}>
+              💬 Comment
+            </span>
+            <span onClick={() => alert("Share feature later")}>
+              ↗ Share
+            </span>
           </div>
         </div>
       </main>
