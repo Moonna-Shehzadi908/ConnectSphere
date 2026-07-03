@@ -72,14 +72,13 @@ const handleLogout = () => {
         <h2 className="logo">ConnectSphere</h2>
 
        <ul>
-  <li onClick={() => navigate("/home")}>📄 Feed</li>
-  <li className="active">💬 Messaging</li>
-  <li onClick={() => alert("Analytics coming soon")}>📊 Analytics</li>
-  <li onClick={() => alert("Monetization coming soon")}>💰 Monetization</li>
-  <li onClick={() => alert("Moderation coming soon")}>🛡 Moderation</li>
-  <li onClick={() => alert("System coming soon")}>⚙ System</li>
-</ul>
-
+          <li onClick={() => navigate("/home")}>📄 Feed</li>
+          <li onClick={() => navigate("/messages")}>💬 Messaging</li>
+          <li onClick={() => navigate("/analytics")}>📊 Analytics</li>
+          <li onClick={() => navigate("/monetization")}>💰 Monetization</li>
+          <li className="active">🛡 Moderation</li>
+          <li onClick={() => navigate("/system")}>⚙ System</li>
+        </ul>
 <button className="createBtn">
   Create Post
 </button>

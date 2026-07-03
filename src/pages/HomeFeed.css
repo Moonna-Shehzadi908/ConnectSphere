@@ -39,7 +39,8 @@
 }
 
 .createBtn,
-.backBtn {
+.backBtn,
+.logoutBtn {
   width: 100%;
   padding: 12px;
   border: none;
@@ -53,8 +54,14 @@
   color: white;
 }
 
+.logoutBtn {
+  background: #ef4444;
+  color: white;
+}
+
 .backBtn {
-  background:#4f46e5;  
+  background: #4f46e5;
+  color: white;
 }
 
 .feedHeader {
@@ -114,6 +121,8 @@
 .createPost input {
   flex: 1;
   padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
 }
 
 .createPost button {
@@ -157,18 +166,13 @@
   border-radius: 20px;
   margin-bottom: 20px;
 }
-.logoutBtn {
-  width: 100%;
-  margin-top: 12px;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 600;
-  background: #ef4444;
-  color: white;
-}
 
 .logoutBtn:hover {
   background: #dc2626;
+}
+
+@media (max-width: 992px) {
+  .homePage {
+    grid-template-columns: 1fr;
+  }
 }

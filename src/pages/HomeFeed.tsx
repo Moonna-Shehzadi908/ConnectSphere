@@ -31,35 +31,19 @@ export default function HomeFeed() {
   };
 
   return (
-    <div className="homeContainer">
+    <div className="homePage">
       {/* Sidebar */}
       <aside className="sidebar">
-        <h2>ConnectSphere</h2>
+        <h2 className="logo">ConnectSphere</h2>
 
         <ul>
-          <li className="active">📄 Feed</li>
-
-          <li onClick={() => navigate("/messages")}>
-            💬 Messaging
-          </li>
-
-          <li onClick={() => alert("Analytics coming soon")}>
-            📊 Analytics
-          </li>
-
-          <li onClick={() => alert("Monetization coming soon")}>
-            💰 Monetization
-          </li>
-
-          <li onClick={() => alert("Moderation coming soon")}>
-            🛡 Moderation
-          </li>
-
-          <li onClick={() => alert("System coming soon")}>
-            ⚙ System
-          </li>
+          <li onClick={() => navigate("/home")}>📄 Feed</li>
+          <li onClick={() => navigate("/messages")}>💬 Messaging</li>
+          <li onClick={() => navigate("/analytics")}>📊 Analytics</li>
+          <li onClick={() => navigate("/monetization")}>💰 Monetization</li>
+          <li className="active">🛡 Moderation</li>
+          <li onClick={() => navigate("/system")}>⚙ System</li>
         </ul>
-
         <button className="createBtn" onClick={handlePost}>
           Create Post
         </button>
