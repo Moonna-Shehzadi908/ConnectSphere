@@ -79,7 +79,10 @@ const handleLogout = () => {
           <li className="active">🛡 Moderation</li>
           <li onClick={() => navigate("/system")}>⚙ System</li>
         </ul>
-<button className="createBtn">
+<button
+  className="createBtn"
+  onClick={() => navigate("/create-post")}
+>
   Create Post
 </button>
 

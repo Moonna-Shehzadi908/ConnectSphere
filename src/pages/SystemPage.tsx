@@ -43,8 +43,12 @@ export default function SystemPage() {
           <li onClick={() => navigate("/system")}>⚙ System</li>
         </ul>
 
-        <button className="createBtn">Create Post</button>
-        <button className="logoutBtn" onClick={handleLogout}>Logout</button>
+<button
+  className="createBtn"
+  onClick={() => navigate("/create-post")}
+>
+  Create Post
+</button>        <button className="logoutBtn" onClick={handleLogout}>Logout</button>
         <button className="backBtn" onClick={() => navigate("/home")}>← Back</button>
       </aside>
 

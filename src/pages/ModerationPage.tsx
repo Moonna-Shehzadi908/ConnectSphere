@@ -56,13 +56,12 @@ export default function ModerationPage() {
           <li className="active">🛡 Moderation</li>
           <li onClick={() => navigate("/system")}>⚙ System</li>
         </ul>
-
-        <button
-          className="createBtn"
-          onClick={() => alert("Create Post Clicked")}
-        >
-          Create Post
-        </button>
+<button
+  className="createBtn"
+  onClick={() => navigate("/create-post")}
+>
+  Create Post
+</button>
 
         <button className="logoutBtn" onClick={handleLogout}>
           Logout

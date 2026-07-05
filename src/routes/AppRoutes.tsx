@@ -8,6 +8,7 @@ import AnalyticsPage from "../pages/AnalyticsPage";
 import SystemPage from "../pages/SystemPage";
 import MonetizationPage from "../pages/MonetizationPage";
 import ModerationPage from "../pages/ModerationPage";
+import CreatePostPage from "../pages/CreatePostPage";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -20,6 +21,7 @@ export default function AppRoutes() {
       <Route path="/system" element={<SystemPage />} />
       <Route path="/monetization" element={<MonetizationPage />} />
       <Route path="/moderation" element={<ModerationPage />} />
+      <Route path="/create-post" element={<CreatePostPage />} />
     </Routes>
   );
 }
