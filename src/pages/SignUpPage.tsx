@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 import "./Auth.css";
 
 export default function SignUpPage() {
@@ -9,38 +10,40 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const createAccount = () => {
+  const createAccount = async () => {
     if (!username || !email || !password) {
       alert("Please fill all fields");
       return;
     }
 
-    const existingUser = localStorage.getItem("signupUser");
-
-    if (existingUser) {
-      const parsed = JSON.parse(existingUser);
-
-      if (parsed.email === email) {
-        alert("Email already registered");
-        return;
-      }
-    }
-
-    localStorage.setItem(
-      "signupUser",
-      JSON.stringify({
+    try {
+      const response = await api.post("/auth/register/", {
         username,
         email,
         password,
-      })
-    );
+        password2: password,
+      });
 
-    alert("Account created successfully!");
-    navigate("/signin");
+      console.log("SUCCESS:", response.data);
+
+      alert("Account created successfully!");
+      navigate("/signin");
+
+    } catch (error: any) {
+      console.log("STATUS:", error.response?.status);
+      console.log("DATA:", error.response?.data);
+      console.log(error);
+
+      if (error.response?.data) {
+        alert(JSON.stringify(error.response.data));
+      } else {
+        alert("Registration failed");
+      }
+    }
   };
 
   return (
-    <div className="authPage">
+    <div className="authContainer">
       <div className="authCard">
         <h1>ConnectSphere</h1>
         <h2>Create Account</h2>

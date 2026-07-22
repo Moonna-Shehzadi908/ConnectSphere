@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 import "./Auth.css";
 
 export default function SignInPage() {
@@ -8,49 +9,47 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const login = () => {
-    const savedUser = JSON.parse(
-      localStorage.getItem("signupUser") || "{}"
-    );
-
-    if (!savedUser.email) {
-      alert("No account found. Please Sign Up first.");
+  const login = async () => {
+    if (!email || !password) {
+      alert("Please enter email and password");
       return;
     }
 
-    if (
-      email === savedUser.email &&
-      password === savedUser.password
-    ) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email: savedUser.email,
-          username: savedUser.username,
-        })
-      );
+    try {
+      const response = await api.post("/auth/login/", {
+        email,
+        password,
+      });
 
-      alert("Login successful!");
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
+      alert("Login Successful!");
       navigate("/home");
-    } else {
-      alert("Invalid email or password");
+    } catch (error: any) {
+      console.log(error);
+
+      if (error.response?.data) {
+        alert(JSON.stringify(error.response.data));
+      } else {
+        alert("Invalid email or password");
+      }
     }
   };
 
   const googleLogin = () => {
-    alert("Google Sign In will be connected later with backend");
+    alert("Google Sign In will be connected later.");
   };
 
   const appleLogin = () => {
-    alert("Apple Sign In coming soon");
+    alert("Apple Sign In coming soon.");
   };
 
   return (
-    <div className="authPage">
-     <div className="authCard">
-  
-
-  <h1>ConnectSphere</h1>
+    <div className="authContainer">
+      <div className="authCard">
+        <h1>ConnectSphere</h1>
 
         <p>Enter your email and password</p>
 
@@ -58,6 +57,7 @@ export default function SignInPage() {
           type="email"
           placeholder="Enter Email"
           value={email}
+          autoComplete="email"
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -65,13 +65,16 @@ export default function SignInPage() {
           type="password"
           placeholder="Enter Password"
           value={password}
+          autoComplete="current-password"
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button onClick={login}>Sign In →</button>
+        <button onClick={login}>
+          Sign In →
+        </button>
 
         <div className="divider">
-          <span>Or continue with</span>
+          <span >Or continue with</span>
         </div>
 
         <div className="socialBtns">
@@ -80,17 +83,18 @@ export default function SignInPage() {
         </div>
 
         <p className="bottomText">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <span onClick={() => navigate("/signup")}>
             Create Account
           </span>
         </p>
+
         <button
-    className="backBtn"
-    onClick={() => navigate(-1)}
-  >
-    ← Back
-  </button>
+          className="backBtn"
+          onClick={() => navigate(-1)}
+        >
+          ← Back
+        </button>
       </div>
     </div>
   );
