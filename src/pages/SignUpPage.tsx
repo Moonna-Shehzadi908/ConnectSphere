@@ -28,11 +28,10 @@ export default function SignUpPage() {
 
       alert("Account created successfully!");
       navigate("/signin");
-
     } catch (error: any) {
+      console.log("FULL ERROR:", error);
       console.log("STATUS:", error.response?.status);
       console.log("DATA:", error.response?.data);
-      console.log(error);
 
       if (error.response?.data) {
         alert(JSON.stringify(error.response.data));
@@ -43,8 +42,8 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="authContainer">
-      <div className="authCard">
+    <div className="authPage">
+      <div className="authContainer">
         <h1>ConnectSphere</h1>
         <h2>Create Account</h2>
 
