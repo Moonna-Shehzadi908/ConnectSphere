@@ -10,7 +10,6 @@ import SystemPage from "../pages/SystemPage";
 import MonetizationPage from "../pages/MonetizationPage";
 import ModerationPage from "../pages/ModerationPage";
 import CreatePostPage from "../pages/CreatePostPage";
-import ChangePassword from "../pages/ChangePassword";
 
 export default function AppRoutes() {
   return (
@@ -25,7 +24,6 @@ export default function AppRoutes() {
       <Route path="/monetization" element={<MonetizationPage />} />
       <Route path="/moderation" element={<ModerationPage />} />
       <Route path="/create-post" element={<CreatePostPage />} />
-      <Route path="/change-password" element={<ChangePassword />} />
     </Routes>
   );
 }

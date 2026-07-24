@@ -68,12 +68,6 @@ export default function SignInPage() {
           autoComplete="current-password"
           onChange={(e) => setPassword(e.target.value)}
         />
-        <p className="bottomText">
-  Want to change password?{" "}
-  <span onClick={() => navigate("/change-password")}>
-    Change Password
-  </span>
-</p>
 
         <button onClick={login}>
           Sign In →
