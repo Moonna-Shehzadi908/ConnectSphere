@@ -1,178 +1,518 @@
-.homePage {
-  display: grid;
-  grid-template-columns: 240px 1fr 260px;
-  gap: 20px;
-  min-height: 100vh;
-  background: #f5f3ff;
-  padding: 20px;
+.homePage{
+  display:grid;
+  grid-template-columns:240px 1fr 280px;
+  gap:22px;
+  min-height:100vh;
+  background:#f4f7fb;
+  padding:22px;
 }
+
+/* =======================
+   COMMON PANELS
+======================= */
 
 .sidebar,
-.rightSidebar,
-.feed {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
+.feed,
+.rightSidebar{
+  background:#fff;
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 8px 30px rgba(0,0,0,.05);
 }
 
-.logo {
-  color: #4f46e5;
-  margin-bottom: 25px;
+/* =======================
+   SIDEBAR
+======================= */
+
+.logo{
+  color:#4f46e5;
+  font-size:28px;
+  font-weight:700;
+  margin-bottom:25px;
 }
 
-.sidebar ul {
-  list-style: none;
-  padding: 0;
+.sidebar ul{
+  list-style:none;
+  padding:0;
+  margin:25px 0;
 }
 
-.sidebar li {
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 12px;
-  cursor: pointer;
+.sidebar li{
+  padding:14px 16px;
+  margin-bottom:10px;
+  border-radius:14px;
+  cursor:pointer;
+  transition:.3s;
+  font-weight:500;
 }
 
 .sidebar li:hover,
-.active {
-  background: #4f46e5;
-  color: white;
+.active{
+  background:#4f46e5;
+  color:white;
 }
+
+/* =======================
+   USER CARD
+======================= */
+
+.userCard{
+  margin:25px 0;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  border-radius:20px;
+  padding:22px;
+  text-align:center;
+  color:#fff;
+  box-shadow:0 15px 35px rgba(79,70,229,.25);
+}
+
+.userAvatar{
+  width:75px;
+  height:75px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid white;
+  margin-bottom:12px;
+}
+
+.userCard h3{
+  margin:6px 0;
+}
+
+.userCard p{
+  font-size:14px;
+  opacity:.9;
+}
+
+/* =======================
+   BUTTONS
+======================= */
 
 .createBtn,
-.backBtn,
-.logoutBtn {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  margin-top: 12px;
-  cursor: pointer;
+.logoutBtn,
+.backBtn{
+  width:100%;
+  padding:13px;
+  border:none;
+  border-radius:14px;
+  margin-top:12px;
+  cursor:pointer;
+  transition:.3s;
+  font-size:15px;
 }
 
-.createBtn {
-  background: #4f46e5;
-  color: white;
+.createBtn{
+  background:#4f46e5;
+  color:white;
 }
 
-.logoutBtn {
-  background: #ef4444;
-  color: white;
+.createBtn:hover{
+  background:#4338ca;
 }
 
-.backBtn {
-  background: #4f46e5;
-  color: white;
+.logoutBtn{
+  background:#ef4444;
+  color:white;
 }
 
-.feedHeader {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+.logoutBtn:hover{
+  background:#dc2626;
 }
 
-.feedHeader input {
-  width: 70%;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
+.backBtn{
+  background:#6366f1;
+  color:white;
 }
 
-.topIcons span {
-  margin-left: 15px;
-  cursor: pointer;
-  font-size: 20px;
+.backBtn:hover{
+  background:#4338ca;
 }
 
-.stories {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
+/* =======================
+   FEED HEADER
+======================= */
+
+.feedHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
 }
 
-.story {
-  text-align: center;
+.feedHeader input{
+  width:72%;
+  padding:14px 18px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  background:#fafafa;
+  transition:.3s;
 }
 
-.story img,
-.postHeader img,
-.createPost img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+.feedHeader input:focus{
+  outline:none;
+  border-color:#6366f1;
+  background:white;
 }
 
-.addStory {
-  width: 50px;
-  height: 50px;
-  background: #4f46e5;
-  color: white;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 24px;
+.topIcons{
+  display:flex;
+  gap:12px;
 }
 
-.createPost {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+.topIcons span{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  background:#f3f4f6;
+  border-radius:50%;
+  cursor:pointer;
+  transition:.3s;
 }
 
-.createPost input {
-  flex: 1;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
+.topIcons span:hover{
+  background:#4f46e5;
+  color:white;
 }
 
-.createPost button {
-  padding: 12px 18px;
-  border: none;
-  background: #4f46e5;
-  color: white;
-  border-radius: 12px;
+/* =======================
+   WELCOME CARD
+======================= */
+
+.welcomeCard{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:28px;
+  border-radius:22px;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  color:white;
+  margin-bottom:25px;
+  box-shadow:0 18px 35px rgba(79,70,229,.25);
 }
 
-.postCard {
-  background: #fafafa;
-  padding: 20px;
-  border-radius: 20px;
+.welcomeCard h2{
+  margin:0;
+  font-size:30px;
 }
 
-.postHeader {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+.welcomeCard h3{
+  margin:10px 0;
+  font-size:22px;
 }
 
-.postImage {
-  width: 100%;
-  border-radius: 16px;
-  margin: 20px 0;
+.welcomeCard{
+    color:#ffffff;
 }
 
-.postActions {
-  display: flex;
-  justify-content: space-around;
+.welcomeCard p{
+    color:#e5e7eb;
 }
 
-.postActions span {
-  cursor: pointer;
+.welcomeCard span{
+    color:#d1d5db;
 }
 
-.card {
-  background: #fafafa;
-  padding: 20px;
-  border-radius: 20px;
-  margin-bottom: 20px;
+.welcomeAvatar{
+  width:95px;
+  height:95px;
+  border-radius:50%;
+  border:4px solid white;
+  object-fit:cover;
 }
 
-.logoutBtn:hover {
-  background: #dc2626;
+/* =======================
+   STORIES
+======================= */
+
+.stories{
+  display:flex;
+  gap:16px;
+  margin-bottom:25px;
 }
 
-@media (max-width: 992px) {
-  .homePage {
-    grid-template-columns: 1fr;
+.story{
+  text-align:center;
+}
+
+.story img{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #6366f1;
+}
+
+.story span{
+  display:block;
+  margin-top:8px;
+  font-size:13px;
+}
+
+.addStory{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#4f46e5;
+  color:white;
+  display:grid;
+  place-items:center;
+  font-size:30px;
+  cursor:pointer;
+}
+/* =======================
+   CREATE POST
+======================= */
+
+.createPost{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  background:#fff;
+  border-radius:20px;
+  padding:22px;
+  margin-bottom:25px;
+  box-shadow:0 8px 25px rgba(0,0,0,.05);
+}
+
+.createPost img{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.createContent{
+  flex:1;
+}
+
+.createContent strong{
+  display:block;
+  color:#111827;
+  margin-bottom:10px;
+}
+
+.createPost input{
+  width:100%;
+  padding:14px 16px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  font-size:15px;
+  transition:.3s;
+}
+.createPost input{
+    color:#ffffff;
+    background:#1f2937;
+    border:1px solid #374151;
+}
+
+.createPost input::placeholder{
+    color:#d1d5db;
+}
+
+.createPost input:focus{
+  outline:none;
+  border-color:#6366f1;
+}
+
+.createPost button{
+  padding:12px 26px;
+  border:none;
+  border-radius:14px;
+  background:#4f46e5;
+  color:white;
+  cursor:pointer;
+  transition:.3s;
+}
+
+.createPost button:hover{
+  background:#4338ca;
+}
+
+/* =======================
+   POST CARD
+======================= */
+
+.postCard{
+  background:#fff;
+  border-radius:22px;
+  padding:24px;
+  box-shadow:0 8px 25px rgba(0,0,0,.05);
+}
+
+.postHeader{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.postHeader img{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+}
+
+.postHeader h4{
+  margin:0;
+  font-size:18px;
+}
+
+.postHeader p{
+  margin-top:4px;
+  color:#6b7280;
+  font-size:14px;
+}
+
+.postText{
+  margin:22px 0;
+  color:#374151;
+  line-height:1.7;
+}
+
+.postImage{
+  width:100%;
+  border-radius:18px;
+}
+
+.postActions{
+  display:flex;
+  justify-content:space-around;
+  margin-top:22px;
+  padding-top:16px;
+  border-top:1px solid #eee;
+}
+
+.postActions span{
+  cursor:pointer;
+  font-weight:500;
+  transition:.3s;
+}
+
+.postActions span:hover{
+  color:#4f46e5;
+}
+
+/* =======================
+   RIGHT SIDEBAR
+======================= */
+
+.card{
+  background:#fff;
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 8px 25px rgba(0,0,0,.05);
+  margin-bottom:20px;
+}
+
+.card h3{
+  color:#4f46e5;
+  margin-bottom:16px;
+}
+
+.card p{
+  margin:12px 0;
+  cursor:pointer;
+  transition:.3s;
+}
+
+.card p:hover{
+  color:#4f46e5;
+  transform:translateX(5px);
+}
+
+/* =======================
+   SCROLLBAR
+======================= */
+
+::-webkit-scrollbar{
+  width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#c7c7c7;
+  border-radius:20px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background:#6366f1;
+}
+
+/* =======================
+   MOBILE
+======================= */
+
+@media(max-width:992px){
+
+  .homePage{
+    grid-template-columns:1fr;
   }
+
+  .sidebar,
+  .rightSidebar{
+    order:2;
+  }
+
+  .feed{
+    order:1;
+  }
+
+  .welcomeCard{
+    flex-direction:column;
+    text-align:center;
+    gap:18px;
+  }
+
+  .createPost{
+    flex-direction:column;
+  }
+
+  .createPost button{
+    width:100%;
+  }
+
+  .feedHeader{
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .feedHeader input{
+    width:100%;
+  }
+
+  .stories{
+    overflow-x:auto;
+    padding-bottom:10px;
+  }
+
+}
+
+@media(max-width:600px){
+
+  .homePage{
+    padding:12px;
+  }
+
+  .sidebar,
+  .feed,
+  .rightSidebar{
+    padding:16px;
+  }
+
+  .logo{
+    font-size:24px;
+  }
+
+  .welcomeCard h2{
+    font-size:24px;
+  }
+
+  .welcomeCard h3{
+    font-size:18px;
+  }
+
+  .postActions{
+    flex-wrap:wrap;
+    gap:12px;
+  }
+
 }
