@@ -1,334 +1,410 @@
 import { useState, useEffect } from "react";
-import "./HomeFeed.css";
-import profile from "../assets/grl dp.webp";
-import sarah from "../assets/sarah.jpg";
-import marcus from "../assets/monus.jpg";
-import elens from "../assets/elens.webp";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
+import "./HomeFeed.css";
+
+import profile from "../assets/profile icone.webp";
+import sarah from "../assets/sarah.jpg";
+import marcus from "../assets/monus.jpg";
+import elens from "../assets/elens.webp";
+
+interface Post {
+  id: number;
+  content: string;
+  visibility: string;
+  created_at: string;
+
+  images: {
+    id: number;
+    image: string;
+  }[];
+}
+
 export default function HomeFeed() {
+
   const navigate = useNavigate();
 
+  const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
+
   const [likes, setLikes] = useState(1200);
+
   const [postText, setPostText] = useState("");
 
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<Post[]>([]);
 
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      try {
-        const response = await api.get("/auth/me/");
-        setUser(response.data);
-      } catch (error) {
-        localStorage.removeItem("access");
-        localStorage.removeItem("refresh");
-        localStorage.removeItem("user");
-        navigate("/signin");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [loading, setLoading] = useState(false);
 
-    getCurrentUser();
-  }, [navigate]);
+  const [fetchingPosts, setFetchingPosts] = useState(true);
 
-  const handlePost = () => {
-    if (!postText.trim()) {
-      alert("Write something first!");
-      return;
+  // ===========================
+  // Fetch All Posts
+  // ===========================
+
+  const fetchPosts = async () => {
+
+    try {
+
+      const response = await api.get("/posts/feed/");
+
+      console.log("Posts:", response.data);
+
+      setPosts(response.data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    } finally {
+
+      setFetchingPosts(false);
+
     }
 
-    alert(`Post Created:\n\n${postText}`);
-    setPostText("");
   };
+
+  useEffect(() => {
+
+    fetchPosts();
+
+  }, []);
+
+  // ===========================
+  // Create Post
+  // ===========================
+
+  const handlePost = async () => {
+
+    if (!postText.trim()) {
+
+      alert("Write something first!");
+
+      return;
+
+    }
+
+    try {
+
+      setLoading(true);
+
+      await api.post("/posts/", {
+
+        content: postText,
+
+        visibility: "PUBLIC",
+
+      });
+
+      alert("Post Created Successfully!");
+
+      setPostText("");
+
+      fetchPosts();
+
+    } catch (error: any) {
+
+      console.log(error);
+
+      alert("Failed to create post.");
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  // ===========================
+  // Like
+  // ===========================
 
   const handleLike = () => {
+
     setLikes((prev) => prev + 1);
+
   };
 
+  // ===========================
+  // Logout
+  // ===========================
+
   const handleLogout = () => {
+
     localStorage.removeItem("access");
+
     localStorage.removeItem("refresh");
+
     localStorage.removeItem("user");
 
     alert("Logged out successfully!");
-    navigate("/signin");
-  };
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          height: "100vh",
-          display: "grid",
-          placeItems: "center",
-          fontSize: "22px",
-          fontWeight: "600",
-        }}
-      >
-        Loading...
-      </div>
-    );
-  }
+    navigate("/signin");
+
+  };
 
   return (
     <div className="homePage">
 
-      {/* Sidebar */}
+  {/* Sidebar */}
 
-      <aside className="sidebar">
+  <aside className="sidebar">
 
-        <h2 className="logo">
-          ConnectSphere
-        </h2>
+    <h2 className="logo">ConnectSphere</h2>
 
-        <ul>
-          <li onClick={() => navigate("/home")}>📄 Feed</li>
+    <ul>
 
-          <li onClick={() => navigate("/messages")}>
-            💬 Messaging
-          </li>
+      <li
+        className="active"
+        onClick={() => navigate("/home")}
+      >
+        📄 Feed
+      </li>
 
-          <li onClick={() => navigate("/analytics")}>
-            📊 Analytics
-          </li>
+      <li onClick={() => navigate("/messages")}>
+        💬 Messaging
+      </li>
 
-          <li onClick={() => navigate("/monetization")}>
-            💰 Monetization
-          </li>
+      <li onClick={() => navigate("/analytics")}>
+        📊 Analytics
+      </li>
 
-          <li className="active">
-            🛡 Moderation
-          </li>
+      <li onClick={() => navigate("/monetization")}>
+        💰 Monetization
+      </li>
 
-          <li onClick={() => navigate("/system")}>
-            ⚙ System
-          </li>
-        </ul>
+      <li onClick={() => navigate("/moderation")}>
+        🛡 Moderation
+      </li>
 
-        {/* User Card */}
+      <li onClick={() => navigate("/system")}>
+        ⚙ System
+      </li>
 
-        <div className="userCard">
+    </ul>
 
-          <img
-            src={profile}
-            alt="Profile"
-            className="userAvatar"
-          />
+    <button
+      className="createBtn"
+      onClick={() => navigate("/create-post")}
+    >
+      Create Post
+    </button>
 
-          <h3>{user?.username}</h3>
+    <button
+      className="logoutBtn"
+      onClick={handleLogout}
+    >
+      Logout
+    </button>
 
-          <p>{user?.email}</p>
+    <button
+      className="backBtn"
+      onClick={() => navigate("/")}
+    >
+      ← Back
+    </button>
 
-        </div>
+  </aside>
 
-        <button
-          className="createBtn"
-          onClick={() => navigate("/create-post")}
+  {/* Feed */}
+
+  <main className="feed">
+
+    <div className="feedHeader">
+
+      <input
+        type="text"
+        placeholder="Search ConnectSphere..."
+      />
+
+      <div className="topIcons">
+
+        <span>🔔</span>
+
+        <span
+          onClick={() => navigate("/messages")}
         >
-          Create Post
-        </button>
+          ✉️
+        </span>
 
-        <button
-          className="logoutBtn"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
+        <span>👤</span>
 
-        <button
-          className="backBtn"
-          onClick={() => navigate("/")}
-        >
-          ← Back
-        </button>
-
-      </aside>
-
-      {/* Main Feed */}
-
-      <main className="feed">
-
-        {/* Header */}
-
-        <div className="feedHeader">
-
-          <input
-            type="text"
-            placeholder="Search ConnectSphere..."
-          />
-
-          <div className="topIcons">
-            <span>🔔</span>
-            <span>✉️</span>
-            <span>👤</span>
-          </div>
-
-        </div>
-
-        {/* Welcome Card */}
-
-        <div className="welcomeCard">
-
-          <div>
-
-            <h2>
-              Welcome back 👋
-            </h2>
-
-            <h3>{user?.username}</h3>
-
-            <p>{user?.email}</p>
-
-            <span>
-              Ready to share something today?
-            </span>
-
-          </div>
-
-          <img
-            src={profile}
-            alt="Profile"
-            className="welcomeAvatar"
-          />
-
-        </div>
-
-        {/* Stories */}
-
-        <div className="stories">
-
-          <div className="story addStory">
-            +
-          </div>
-
-          <div className="story">
-            <img src={sarah} alt="Sarah" />
-            <span>Sarah</span>
-          </div>
-
-          <div className="story">
-            <img src={marcus} alt="Marcus" />
-            <span>Marcus</span>
-          </div>
-
-          <div className="story">
-            <img src={elens} alt="Elena" />
-            <span>Elena</span>
-          </div>
-
-        </div>
-
-        {/* Create Post */}
-
-        <div className="createPost">
-
-          <img
-            src={profile}
-            alt="Profile"
-          />
-
-          <div className="createContent">
-
-            <strong>{user?.username}</strong>
-
-            <input
-              type="text"
-              placeholder="What's on your mind?"
-              value={postText}
-              onChange={(e) => setPostText(e.target.value)}
-            />
-
-          </div>
-
-          <button onClick={handlePost}>
-            Post
-          </button>
-
-        </div>
-
-        {/* Demo Post */}
-
-        <div className="postCard">
-
-          <div className="postHeader">
-
-            <img
-              src={profile}
-              alt="Profile"
-            />
-
-            <div>
-
-              <h4>{user?.username}</h4>
-
-              <p>Just now</p>
-
-            </div>
-
-          </div>
-
-          <p className="postText">
-            Welcome to ConnectSphere 🚀
-            <br />
-            Your authentication system is now connected successfully with the Django backend.
-          </p>
-
-          <img
-            src={profile}
-            alt="Post"
-            className="postImage"
-          />
-
-          <div className="postActions">
-
-            <span onClick={handleLike}>
-              👍 Like ({likes})
-            </span>
-
-            <span>
-              💬 Comment
-            </span>
-
-            <span>
-              ↗ Share
-            </span>
-
-          </div>
-
-        </div>
-
-      </main>
-
-      {/* Right Sidebar */}
-
-      <aside className="rightSidebar">
-
-        <div className="card">
-
-          <h3>🔥 Trending Today</h3>
-
-          <p>#SpatialComputing</p>
-          <p>#DesignThinking</p>
-          <p>#RemoteWork</p>
-          <p>#Web3Future</p>
-
-        </div>
-
-        <div className="card">
-
-          <h3>👥 Suggested For You</h3>
-
-          <p>👤 Laila Horne</p>
-          <p>👤 David Chen</p>
-          <p>👤 Jordan Smith</p>
-
-        </div>
-
-      </aside>
+      </div>
 
     </div>
-  );
+
+    {/* Welcome */}
+
+    <div className="welcomeCard">
+
+      <h2>
+        Welcome back,
+        {" "}
+        {user.username || "User"} 👋
+      </h2>
+
+      <p>
+        {user.email}
+      </p>
+
+    </div>
+
+    {/* Stories */}
+
+    <div className="stories">
+
+      <div className="story addStory">
+        +
+      </div>
+
+      <div className="story">
+        <img src={sarah} alt="" />
+        <span>Sarah</span>
+      </div>
+
+      <div className="story">
+        <img src={marcus} alt="" />
+        <span>Marcus</span>
+      </div>
+
+      <div className="story">
+        <img src={elens} alt="" />
+        <span>Elena</span>
+      </div>
+
+    </div>
+
+    {/* Create Post */}
+
+    <div className="createPost">
+
+      <img
+        src={profile}
+        alt=""
+      />
+
+      <input
+        type="text"
+        value={postText}
+        placeholder="Share your latest insight..."
+        onChange={(e) =>
+          setPostText(e.target.value)
+        }
+      />
+
+      <button
+        onClick={handlePost}
+        disabled={loading}
+      >
+        {loading ? "Posting..." : "Post"}
+      </button>
+
+    </div>
+
+    {/* Loading */}
+
+    {fetchingPosts && (
+
+      <div className="card">
+
+        <p>Loading posts...</p>
+
+      </div>
+
+    )}
+
+    {/* Empty Feed */}
+
+    {!fetchingPosts &&
+      posts.length === 0 && (
+
+        <div className="card">
+
+          <h3>No Posts Yet</h3>
+
+          <p>
+            Create your first post.
+          </p>
+
+        </div>
+
+    )}
+
+   {/* Dynamic Posts */}
+
+{loading ? (
+
+  <div className="postCard">
+    <p>Loading posts...</p>
+  </div>
+
+) : posts.length === 0 ? (
+
+  <div className="postCard">
+    <p>No posts available.</p>
+  </div>
+
+) : (
+
+  posts.map((post) => (
+
+    <div className="postCard" key={post.id}>
+
+      <div className="postHeader">
+
+        <img src={profile} alt="Profile" />
+
+        <div>
+          <h4>{user.username}</h4>
+          <p>{new Date(post.created_at).toLocaleString()}</p>
+        </div>
+
+      </div>
+
+      <p className="postText">
+        {post.content}
+      </p>
+
+      {post.images.length > 0 && (
+
+        <img
+          src={`http://127.0.0.1:8000${post.images[0].image}`}
+          alt="Post"
+          className="postImage"
+        />
+
+      )}
+
+      <div className="postActions">
+
+        <span onClick={handleLike}>
+          👍 Like ({likes})
+        </span>
+
+        <span>💬 Comment</span>
+
+        <span>↗ Share</span>
+
+      </div>
+
+    </div>
+
+  ))
+
+)}
+</main>
+
+<aside className="rightSidebar">
+
+  ...
+  ...
+  ...
+
+</aside>
+
+</div>
+
+);
 }
