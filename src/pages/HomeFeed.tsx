@@ -10,15 +10,24 @@ import marcus from "../assets/monus.jpg";
 import elens from "../assets/elens.webp";
 
 interface Post {
+
   id: number;
+
   content: string;
+
   visibility: string;
+
   created_at: string;
+
+  username: string;
+
+  avatar: string | null;
 
   images: {
     id: number;
     image: string;
   }[];
+
 }
 
 export default function HomeFeed() {
@@ -40,16 +49,20 @@ export default function HomeFeed() {
   const [fetchingPosts, setFetchingPosts] = useState(true);
 
   // ===========================
-  // Fetch All Posts
+  // Fetch Posts
   // ===========================
 
   const fetchPosts = async () => {
 
     try {
 
-      const response = await api.get("/posts/feed/");
+      setFetchingPosts(true);
 
-      console.log("Posts:", response.data);
+      const response = await api.get(
+        "/posts/feed/"
+      );
+
+      console.log(response.data);
 
       setPosts(response.data);
 
@@ -97,13 +110,13 @@ export default function HomeFeed() {
 
       });
 
-      alert("Post Created Successfully!");
-
       setPostText("");
 
       fetchPosts();
 
-    } catch (error: any) {
+      alert("Post created successfully!");
+
+    } catch (error) {
 
       console.log(error);
 
@@ -145,14 +158,15 @@ export default function HomeFeed() {
 
   };
 
-  return (
-    <div className="homePage">
+  return (<div className="homePage">
 
   {/* Sidebar */}
 
   <aside className="sidebar">
 
-    <h2 className="logo">ConnectSphere</h2>
+    <h2 className="logo">
+      ConnectSphere
+    </h2>
 
     <ul>
 
@@ -163,23 +177,33 @@ export default function HomeFeed() {
         📄 Feed
       </li>
 
-      <li onClick={() => navigate("/messages")}>
+      <li
+        onClick={() => navigate("/messages")}
+      >
         💬 Messaging
       </li>
 
-      <li onClick={() => navigate("/analytics")}>
+      <li
+        onClick={() => navigate("/analytics")}
+      >
         📊 Analytics
       </li>
 
-      <li onClick={() => navigate("/monetization")}>
+      <li
+        onClick={() => navigate("/monetization")}
+      >
         💰 Monetization
       </li>
 
-      <li onClick={() => navigate("/moderation")}>
+      <li
+        onClick={() => navigate("/moderation")}
+      >
         🛡 Moderation
       </li>
 
-      <li onClick={() => navigate("/system")}>
+      <li
+        onClick={() => navigate("/system")}
+      >
         ⚙ System
       </li>
 
@@ -240,8 +264,7 @@ export default function HomeFeed() {
     <div className="welcomeCard">
 
       <h2>
-        Welcome back,
-        {" "}
+        Welcome back,{" "}
         {user.username || "User"} 👋
       </h2>
 
@@ -282,7 +305,7 @@ export default function HomeFeed() {
 
       <img
         src={profile}
-        alt=""
+        alt="Profile"
       />
 
       <input
@@ -320,19 +343,20 @@ export default function HomeFeed() {
     {!fetchingPosts &&
       posts.length === 0 && (
 
-        <div className="card">
+      <div className="card">
 
-          <h3>No Posts Yet</h3>
+        <h3>No Posts Yet</h3>
 
-          <p>
-            Create your first post.
-          </p>
+        <p>
+          Create your first post.
+        </p>
 
-        </div>
+      </div>
 
     )}
-
-   {/* Dynamic Posts */}
+    {/* ===========================
+    Dynamic Posts
+=========================== */}
 
 {loading ? (
 
@@ -350,15 +374,38 @@ export default function HomeFeed() {
 
   posts.map((post) => (
 
-    <div className="postCard" key={post.id}>
+    <div
+      className="postCard"
+      key={post.id}
+    >
 
       <div className="postHeader">
 
-        <img src={profile} alt="Profile" />
+        <img
+          src={
+            post.avatar
+              ? `http://127.0.0.1:8000${post.avatar}`
+              : profile
+          }
+          alt="Profile"
+        />
 
         <div>
-          <h4>{user.username}</h4>
-          <p>{new Date(post.created_at).toLocaleString()}</p>
+
+          <h4>
+            {post.username}
+          </h4>
+
+          <p>
+            {new Date(post.created_at).toLocaleString(
+              "en-US",
+              {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }
+            )}
+          </p>
+
         </div>
 
       </div>
@@ -383,9 +430,13 @@ export default function HomeFeed() {
           👍 Like ({likes})
         </span>
 
-        <span>💬 Comment</span>
+        <span>
+          💬 Comment
+        </span>
 
-        <span>↗ Share</span>
+        <span>
+          ↗ Share
+        </span>
 
       </div>
 
@@ -393,18 +444,73 @@ export default function HomeFeed() {
 
   ))
 
-)}
-</main>
+)}      </main>
 
-<aside className="rightSidebar">
+      {/* Right Sidebar */}
 
-  ...
-  ...
-  ...
+      <aside className="rightSidebar">
 
-</aside>
+        <div className="card">
 
-</div>
+          <h3>Trending Now</h3>
 
-);
+          <p>#SpatialComputing</p>
+          <p>#DesignThinking</p>
+          <p>#RemoteWork</p>
+          <p>#WebDevelopment</p>
+
+        </div>
+
+        <div className="card">
+
+          <h3>Suggested For You</h3>
+
+          <p>👤 Laila Horne</p>
+          <p>👤 David Chen</p>
+          <p>👤 Jordan Smith</p>
+
+        </div>
+
+        <div className="card">
+
+          <h3>Your Account</h3>
+
+          <img
+            src={
+              user?.profile?.avatar
+                ? `http://127.0.0.1:8000${user.profile.avatar}`
+                : profile
+            }
+            alt="Profile"
+            className="accountAvatar"
+          />
+
+          <p>
+            <strong>Name:</strong>{" "}
+            {user.username || "Unknown"}
+          </p>
+
+          <p>
+            <strong>Email:</strong>{" "}
+            {user.email || "Not Available"}
+          </p>
+
+          <p
+            style={{
+              color: "#22c55e",
+              marginTop: "10px",
+              fontWeight: 600,
+            }}
+          >
+            ● Online
+          </p>
+
+        </div>
+
+      </aside>
+
+    </div>
+
+  );
+
 }
