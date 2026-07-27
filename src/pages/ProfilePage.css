@@ -1,33 +1,162 @@
 .profilePage{
-    max-width:1000px;
-    margin:auto;
-    padding:30px;
+    max-width:1100px;
+    margin:30px auto;
+    background:#fff;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.12);
+}
+
+/* ================= COVER ================= */
+
+.coverSection{
+    position:relative;
 }
 
 .coverImage{
     width:100%;
-    height:250px;
+    height:280px;
     object-fit:cover;
-    border-radius:20px;
+    display:block;
 }
 
-.profileInfo{
+.coverUpload{
+    position:absolute;
+    right:20px;
+    bottom:20px;
+    background:#5b4df7;
+    color:#fff;
+    padding:10px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.3s;
+}
+
+.coverUpload:hover{
+    background:#4737e6;
+}
+
+/* ================= BACK BUTTON ================= */
+
+.backButton{
+    position:absolute;
+    top:20px;
+    left:20px;
+    background:white;
+    color:#333;
+    padding:10px 18px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 4px 15px rgba(0,0,0,.15);
+    transition:.3s;
+}
+
+.backButton:hover{
+    background:#f5f5f5;
+}
+
+/* ================= PROFILE ================= */
+
+.profileHeader{
     text-align:center;
-    margin-top:-60px;
+    margin-top:-70px;
+    padding-bottom:30px;
 }
 
 .avatar{
-    width:120px;
-    height:120px;
+    width:150px;
+    height:150px;
     border-radius:50%;
-    border:5px solid white;
+    border:6px solid white;
     object-fit:cover;
+    background:white;
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
 }
 
-.profileInfo h2{
+.avatarUpload{
+    display:inline-block;
     margin-top:15px;
+    background:#5b4df7;
+    color:white;
+    padding:10px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.3s;
 }
 
-.profileInfo p{
-    margin:6px 0;
+.avatarUpload:hover{
+    background:#4737e6;
+}
+
+.profileHeader h2{
+    margin-top:20px;
+    font-size:30px;
+    color:#222;
+}
+
+.profileHeader p{
+    color:#666;
+    margin-top:5px;
+}
+
+/* ================= CARD ================= */
+
+.profileCard{
+    width:90%;
+    margin:20px auto 40px;
+    background:#fafafa;
+    border-radius:18px;
+    padding:30px;
+}
+
+.profileCard h3{
+    color:#5b4df7;
+    margin-bottom:20px;
+}
+
+.profileCard label{
+    display:block;
+    margin:15px 0 8px;
+    font-weight:600;
+}
+
+.profileCard input,
+.profileCard textarea{
+    width:100%;
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:15px;
+    outline:none;
+}
+
+.profileCard input:focus,
+.profileCard textarea:focus{
+    border-color:#5b4df7;
+}
+
+.profileCard textarea{
+    resize:none;
+    min-height:120px;
+}
+
+.saveBtn{
+    width:100%;
+    margin-top:25px;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:#5b4df7;
+    color:white;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.saveBtn:hover{
+    background:#4737e6;
 }

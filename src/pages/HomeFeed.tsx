@@ -4,380 +4,338 @@ import api from "../services/api";
 
 import "./HomeFeed.css";
 
-import profile from "../assets/profile icone.webp";
+import defaultProfile from "../assets/profile icone.webp";
 import sarah from "../assets/sarah.jpg";
 import marcus from "../assets/monus.jpg";
-import elens from "../assets/elens.webp";
+import elena from "../assets/elens.webp";
 
 interface Post {
-
   id: number;
-
   content: string;
-
   visibility: string;
-
   created_at: string;
 
   username: string;
-
   avatar: string | null;
 
   images: {
     id: number;
     image: string;
   }[];
-
 }
 
 export default function HomeFeed() {
-
   const navigate = useNavigate();
 
   const user = JSON.parse(
     localStorage.getItem("user") || "{}"
   );
 
-  const [likes, setLikes] = useState(1200);
-
+  const [posts, setPosts] = useState<Post[]>([]);
   const [postText, setPostText] = useState("");
 
-  const [posts, setPosts] = useState<Post[]>([]);
-
   const [loading, setLoading] = useState(false);
-
   const [fetchingPosts, setFetchingPosts] = useState(true);
 
-  // ===========================
+  const [likes, setLikes] = useState(1200);
+
+  // ==========================
   // Fetch Posts
-  // ===========================
+  // ==========================
 
   const fetchPosts = async () => {
-
     try {
-
       setFetchingPosts(true);
 
-      const response = await api.get(
-        "/posts/feed/"
-      );
-
-      console.log(response.data);
+      const response = await api.get("/posts/feed/");
 
       setPosts(response.data);
-
     } catch (error) {
-
       console.log(error);
-
     } finally {
-
       setFetchingPosts(false);
-
     }
-
   };
 
   useEffect(() => {
-
     fetchPosts();
-
   }, []);
 
-  // ===========================
+  // ==========================
   // Create Post
-  // ===========================
+  // ==========================
 
   const handlePost = async () => {
-
     if (!postText.trim()) {
-
       alert("Write something first!");
-
       return;
-
     }
 
     try {
-
       setLoading(true);
 
       await api.post("/posts/", {
-
         content: postText,
-
         visibility: "PUBLIC",
-
       });
 
       setPostText("");
 
       fetchPosts();
 
-      alert("Post created successfully!");
-
+      alert("Post Created Successfully!");
     } catch (error) {
-
       console.log(error);
 
-      alert("Failed to create post.");
-
+      alert("Unable to create post.");
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-  // ===========================
+  // ==========================
   // Like
-  // ===========================
+  // ==========================
 
   const handleLike = () => {
-
     setLikes((prev) => prev + 1);
-
   };
 
-  // ===========================
+  // ==========================
   // Logout
-  // ===========================
+  // ==========================
 
   const handleLogout = () => {
-
     localStorage.removeItem("access");
-
     localStorage.removeItem("refresh");
-
     localStorage.removeItem("user");
 
-    alert("Logged out successfully!");
-
     navigate("/signin");
-
   };
 
-  return (<div className="homePage">
+  return (  return (
+    <div className="homePage">
 
-  {/* Sidebar */}
+      {/* ================= Sidebar ================= */}
 
-  <aside className="sidebar">
+      <aside className="sidebar">
 
-    <h2 className="logo">
-      ConnectSphere
-    </h2>
+        <h2 className="logo">
+          ConnectSphere
+        </h2>
 
-    <ul>
+        <ul>
 
-      <li
-        className="active"
-        onClick={() => navigate("/home")}
-      >
-        📄 Feed
-      </li>
+          <li
+            className="active"
+            onClick={() => navigate("/home")}
+          >
+            📄 Feed
+          </li>
 
-      <li
-        onClick={() => navigate("/messages")}
-      >
-        💬 Messaging
-      </li>
+          <li onClick={() => navigate("/messages")}>
+            💬 Messaging
+          </li>
 
-      <li
-        onClick={() => navigate("/analytics")}
-      >
-        📊 Analytics
-      </li>
+          <li onClick={() => navigate("/analytics")}>
+            📊 Analytics
+          </li>
 
-      <li
-        onClick={() => navigate("/monetization")}
-      >
-        💰 Monetization
-      </li>
+          <li onClick={() => navigate("/monetization")}>
+            💰 Monetization
+          </li>
 
-      <li
-        onClick={() => navigate("/moderation")}
-      >
-        🛡 Moderation
-      </li>
+          <li onClick={() => navigate("/moderation")}>
+            🛡 Moderation
+          </li>
 
-      <li
-        onClick={() => navigate("/system")}
-      >
-        ⚙ System
-      </li>
+          <li onClick={() => navigate("/system")}>
+            ⚙ System
+          </li>
 
-    </ul>
+        </ul>
 
-    <button
-      className="createBtn"
-      onClick={() => navigate("/create-post")}
-    >
-      Create Post
-    </button>
-
-    <button
-      className="logoutBtn"
-      onClick={handleLogout}
-    >
-      Logout
-    </button>
-
-    <button
-      className="backBtn"
-      onClick={() => navigate("/")}
-    >
-      ← Back
-    </button>
-
-  </aside>
-
-  {/* Feed */}
-
-  <main className="feed">
-
-    <div className="feedHeader">
-
-      <input
-        type="text"
-        placeholder="Search ConnectSphere..."
-      />
-
-      <div className="topIcons">
-
-        <span>🔔</span>
-
-        <span
-          onClick={() => navigate("/messages")}
+        <button
+          className="createBtn"
+          onClick={() => navigate("/create-post")}
         >
-          ✉️
-        </span>
+          + Create Post
+        </button>
 
-        <span>👤</span>
+        <button
+          className="logoutBtn"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
 
-      </div>
+      </aside>
 
-    </div>
+      {/* ================= Main Feed ================= */}
 
-    {/* Welcome */}
+      <main className="feed">
 
-    <div className="welcomeCard">
+        {/* Header */}
 
-      <h2>
-        Welcome back,{" "}
-        {user.username || "User"} 👋
-      </h2>
+        <div className="feedHeader">
 
-      <p>
-        {user.email}
-      </p>
+          <input
+            type="text"
+            placeholder="Search ConnectSphere..."
+          />
 
-    </div>
+          <div className="topIcons">
 
-    {/* Stories */}
+            <span>🔔</span>
 
-    <div className="stories">
+            <span
+              onClick={() => navigate("/messages")}
+            >
+              ✉️
+            </span>
 
-      <div className="story addStory">
-        +
-      </div>
+            <img
+              className="headerAvatar"
+              src={
+                user?.profile?.avatar
+                  ? `http://127.0.0.1:8000${user.profile.avatar}`
+                  : profile
+              }
+              alt="Profile"
+              onClick={() => navigate("/profile")}
+            />
 
-      <div className="story">
-        <img src={sarah} alt="" />
-        <span>Sarah</span>
-      </div>
+          </div>
 
-      <div className="story">
-        <img src={marcus} alt="" />
-        <span>Marcus</span>
-      </div>
+        </div>
 
-      <div className="story">
-        <img src={elens} alt="" />
-        <span>Elena</span>
-      </div>
+        {/* Welcome */}
 
-    </div>
+        <div className="welcomeCard">
 
-    {/* Create Post */}
+          <div>
 
-    <div className="createPost">
+            <h2>
+              Welcome back,
+              {" "}
+              {user.username}
+              👋
+            </h2>
 
-      <img
-        src={profile}
-        alt="Profile"
-      />
+            <p>
+              Share your thoughts with your network.
+            </p>
 
-      <input
-        type="text"
-        value={postText}
-        placeholder="Share your latest insight..."
-        onChange={(e) =>
-          setPostText(e.target.value)
-        }
-      />
+          </div>
 
-      <button
-        onClick={handlePost}
-        disabled={loading}
-      >
-        {loading ? "Posting..." : "Post"}
-      </button>
+          <button
+            className="profileBtn"
+            onClick={() => navigate("/profile")}
+          >
+            View Profile
+          </button>
 
-    </div>
+        </div>
 
-    {/* Loading */}
+        {/* Stories */}
 
-    {fetchingPosts && (
+        <div className="stories">
 
-      <div className="card">
+          <div className="story addStory">
+            +
+          </div>
 
-        <p>Loading posts...</p>
+          <div className="story">
+            <img src={sarah} alt="" />
+            <span>Sarah</span>
+          </div>
 
-      </div>
+          <div className="story">
+            <img src={marcus} alt="" />
+            <span>Marcus</span>
+          </div>
 
-    )}
+          <div className="story">
+            <img src={elens} alt="" />
+            <span>Elena</span>
+          </div>
 
-    {/* Empty Feed */}
+        </div>
 
-    {!fetchingPosts &&
-      posts.length === 0 && (
+        {/* Create Post */}
 
-      <div className="card">
+        <div className="createPost">
 
-        <h3>No Posts Yet</h3>
+          <img
+            src={
+              user?.profile?.avatar
+                ? `http://127.0.0.1:8000${user.profile.avatar}`
+                : profile
+            }
+            alt=""
+          />
 
-        <p>
-          Create your first post.
-        </p>
+          <input
+            type="text"
+            value={postText}
+            placeholder="Share your latest insight..."
+            onChange={(e) =>
+              setPostText(e.target.value)
+            }
+          />
 
-      </div>
+          <button
+            onClick={handlePost}
+            disabled={loading}
+          >
+            {loading ? "Posting..." : "Post"}
+          </button>
 
-    )}
-    {/* ===========================
-    Dynamic Posts
+        </div>
+
+        {/* Loading */}
+
+        {fetchingPosts && (
+
+          <div className="card">
+            Loading posts...
+          </div>
+
+        )}
+
+        {!fetchingPosts &&
+          posts.length === 0 && (
+
+          <div className="card">
+
+            <h3>No Posts Yet</h3>
+
+            <p>Create your first post.</p>
+
+          </div>
+
+        )}{/* ===========================
+   Dynamic Posts
 =========================== */}
 
-{loading ? (
+{fetchingPosts ? (
 
-  <div className="postCard">
+  <div className="card">
     <p>Loading posts...</p>
   </div>
 
 ) : posts.length === 0 ? (
 
-  <div className="postCard">
-    <p>No posts available.</p>
+  <div className="card">
+    <h3>No Posts Yet</h3>
+    <p>Create your first post.</p>
   </div>
 
 ) : (
 
   posts.map((post) => (
 
-    <div
-      className="postCard"
-      key={post.id}
-    >
+    <div className="postCard" key={post.id}>
 
       <div className="postHeader">
 
@@ -388,23 +346,19 @@ export default function HomeFeed() {
               : profile
           }
           alt="Profile"
+          className="postAvatar"
         />
 
-        <div>
+        <div className="postUser">
 
-          <h4>
-            {post.username}
-          </h4>
+          <h4>{post.username}</h4>
 
-          <p>
-            {new Date(post.created_at).toLocaleString(
-              "en-US",
-              {
-                dateStyle: "medium",
-                timeStyle: "short",
-              }
-            )}
-          </p>
+          <span>
+            {new Date(post.created_at).toLocaleString("en-US", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })}
+          </span>
 
         </div>
 
@@ -426,17 +380,20 @@ export default function HomeFeed() {
 
       <div className="postActions">
 
-        <span onClick={handleLike}>
+        <button
+          className="actionBtn"
+          onClick={handleLike}
+        >
           👍 Like ({likes})
-        </span>
+        </button>
 
-        <span>
+        <button className="actionBtn">
           💬 Comment
-        </span>
+        </button>
 
-        <span>
+        <button className="actionBtn">
           ↗ Share
-        </span>
+        </button>
 
       </div>
 
@@ -444,73 +401,69 @@ export default function HomeFeed() {
 
   ))
 
-)}      </main>
+)}
 
-      {/* Right Sidebar */}
+{/* ===========================
+   Right Sidebar
+=========================== */}
 
-      <aside className="rightSidebar">
+<aside className="rightSidebar">
 
-        <div className="card">
+  <div className="profileMiniCard">
 
-          <h3>Trending Now</h3>
+    <img
+      src={profile}
+      className="miniAvatar"
+      alt="profile"
+    />
 
-          <p>#SpatialComputing</p>
-          <p>#DesignThinking</p>
-          <p>#RemoteWork</p>
-          <p>#WebDevelopment</p>
+    <h3>{user.username}</h3>
 
-        </div>
+    <p>{user.email}</p>
 
-        <div className="card">
+    <button
+      className="profileBtn"
+      onClick={() => navigate("/profile")}
+    >
+      View Profile
+    </button>
 
-          <h3>Suggested For You</h3>
+  </div>
 
-          <p>👤 Laila Horne</p>
-          <p>👤 David Chen</p>
-          <p>👤 Jordan Smith</p>
+  <div className="card">
 
-        </div>
+    <h3>🔥 Trending</h3>
 
-        <div className="card">
+    <p>#ReactJS</p>
+    <p>#TypeScript</p>
+    <p>#WebDevelopment</p>
+    <p>#ArtificialIntelligence</p>
 
-          <h3>Your Account</h3>
+  </div>
 
-          <img
-            src={
-              user?.profile?.avatar
-                ? `http://127.0.0.1:8000${user.profile.avatar}`
-                : profile
-            }
-            alt="Profile"
-            className="accountAvatar"
-          />
+  <div className="card">
 
-          <p>
-            <strong>Name:</strong>{" "}
-            {user.username || "Unknown"}
-          </p>
+    <h3>People You May Know</h3>
 
-          <p>
-            <strong>Email:</strong>{" "}
-            {user.email || "Not Available"}
-          </p>
-
-          <p
-            style={{
-              color: "#22c55e",
-              marginTop: "10px",
-              fontWeight: 600,
-            }}
-          >
-            ● Online
-          </p>
-
-        </div>
-
-      </aside>
-
+    <div className="suggestUser">
+      <img src={sarah} alt="" />
+      <span>Sarah Johnson</span>
     </div>
 
-  );
+    <div className="suggestUser">
+      <img src={marcus} alt="" />
+      <span>Marcus Lee</span>
+    </div>
 
+    <div className="suggestUser">
+      <img src={elens} alt="" />
+      <span>Elena White</span>
+    </div>
+
+  </div>
+
+</aside>
+
+</div>
+);
 }
