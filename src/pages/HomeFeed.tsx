@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import api from "../services/api";
 
 import "./HomeFeed.css";
@@ -9,19 +10,19 @@ import sarah from "../assets/sarah.jpg";
 import marcus from "../assets/monus.jpg";
 import elena from "../assets/elens.webp";
 
+interface PostImage {
+  id: number;
+  image: string;
+}
+
 interface Post {
   id: number;
+  username: string;
+  avatar: string | null;
   content: string;
   visibility: string;
   created_at: string;
-
-  username: string;
-  avatar: string | null;
-
-  images: {
-    id: number;
-    image: string;
-  }[];
+  images: PostImage[];
 }
 
 export default function HomeFeed() {
@@ -33,21 +34,21 @@ export default function HomeFeed() {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [postText, setPostText] = useState("");
-
   const [loading, setLoading] = useState(false);
-  const [fetchingPosts, setFetchingPosts] = useState(true);
+  const [fetchingPosts, setFetchingPosts] =
+    useState(true);
 
-  const [likes, setLikes] = useState(1200);
-
-  // ==========================
-  // Fetch Posts
-  // ==========================
+  // ===============================
+  // Fetch Feed
+  // ===============================
 
   const fetchPosts = async () => {
     try {
       setFetchingPosts(true);
 
-      const response = await api.get("/posts/feed/");
+      const response = await api.get(
+        "/posts/feed/"
+      );
 
       setPosts(response.data);
     } catch (error) {
@@ -61,15 +62,12 @@ export default function HomeFeed() {
     fetchPosts();
   }, []);
 
-  // ==========================
+  // ===============================
   // Create Post
-  // ==========================
+  // ===============================
 
   const handlePost = async () => {
-    if (!postText.trim()) {
-      alert("Write something first!");
-      return;
-    }
+    if (!postText.trim()) return;
 
     try {
       setLoading(true);
@@ -82,41 +80,25 @@ export default function HomeFeed() {
       setPostText("");
 
       fetchPosts();
-
-      alert("Post Created Successfully!");
     } catch (error) {
       console.log(error);
-
-      alert("Unable to create post.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ==========================
-  // Like
-  // ==========================
-
-  const handleLike = () => {
-    setLikes((prev) => prev + 1);
-  };
-
-  // ==========================
+  // ===============================
   // Logout
-  // ==========================
+  // ===============================
 
   const handleLogout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    localStorage.removeItem("user");
-
+    localStorage.clear();
     navigate("/signin");
   };
 
-  return (  return (
-    <div className="homePage">
-
-      {/* ================= Sidebar ================= */}
+  return (
+    <div className="homeContainer">
+            {/* ================= SIDEBAR ================= */}
 
       <aside className="sidebar">
 
@@ -133,23 +115,33 @@ export default function HomeFeed() {
             📄 Feed
           </li>
 
-          <li onClick={() => navigate("/messages")}>
+          <li
+            onClick={() => navigate("/messages")}
+          >
             💬 Messaging
           </li>
 
-          <li onClick={() => navigate("/analytics")}>
+          <li
+            onClick={() => navigate("/analytics")}
+          >
             📊 Analytics
           </li>
 
-          <li onClick={() => navigate("/monetization")}>
+          <li
+            onClick={() => navigate("/monetization")}
+          >
             💰 Monetization
           </li>
 
-          <li onClick={() => navigate("/moderation")}>
+          <li
+            onClick={() => navigate("/moderation")}
+          >
             🛡 Moderation
           </li>
 
-          <li onClick={() => navigate("/system")}>
+          <li
+            onClick={() => navigate("/system")}
+          >
             ⚙ System
           </li>
 
@@ -159,7 +151,7 @@ export default function HomeFeed() {
           className="createBtn"
           onClick={() => navigate("/create-post")}
         >
-          + Create Post
+          Create Post
         </button>
 
         <button
@@ -171,9 +163,9 @@ export default function HomeFeed() {
 
       </aside>
 
-      {/* ================= Main Feed ================= */}
+      {/* ================= MAIN ================= */}
 
-      <main className="feed">
+      <main className="feedArea">
 
         {/* Header */}
 
@@ -184,7 +176,7 @@ export default function HomeFeed() {
             placeholder="Search ConnectSphere..."
           />
 
-          <div className="topIcons">
+          <div className="headerIcons">
 
             <span>🔔</span>
 
@@ -195,12 +187,12 @@ export default function HomeFeed() {
             </span>
 
             <img
-              className="headerAvatar"
               src={
                 user?.profile?.avatar
                   ? `http://127.0.0.1:8000${user.profile.avatar}`
-                  : profile
+                  : defaultProfile
               }
+              className="miniAvatar"
               alt="Profile"
               onClick={() => navigate("/profile")}
             />
@@ -213,27 +205,15 @@ export default function HomeFeed() {
 
         <div className="welcomeCard">
 
-          <div>
+          <h2>
+            Welcome back,
+            {" "}
+            {user.username || "User"} 👋
+          </h2>
 
-            <h2>
-              Welcome back,
-              {" "}
-              {user.username}
-              👋
-            </h2>
-
-            <p>
-              Share your thoughts with your network.
-            </p>
-
-          </div>
-
-          <button
-            className="profileBtn"
-            onClick={() => navigate("/profile")}
-          >
-            View Profile
-          </button>
+          <p>
+            {user.email}
+          </p>
 
         </div>
 
@@ -256,7 +236,7 @@ export default function HomeFeed() {
           </div>
 
           <div className="story">
-            <img src={elens} alt="" />
+            <img src={elena} alt="" />
             <span>Elena</span>
           </div>
 
@@ -270,15 +250,15 @@ export default function HomeFeed() {
             src={
               user?.profile?.avatar
                 ? `http://127.0.0.1:8000${user.profile.avatar}`
-                : profile
+                : defaultProfile
             }
-            alt=""
+            alt="Profile"
           />
 
           <input
             type="text"
+            placeholder="Share something..."
             value={postText}
-            placeholder="Share your latest insight..."
             onChange={(e) =>
               setPostText(e.target.value)
             }
@@ -293,177 +273,153 @@ export default function HomeFeed() {
 
         </div>
 
-        {/* Loading */}
-
         {fetchingPosts && (
-
-          <div className="card">
+          <p className="loadingText">
             Loading posts...
-          </div>
-
+          </p>
         )}
 
         {!fetchingPosts &&
           posts.length === 0 && (
+            <p className="loadingText">
+              No posts available.
+            </p>
+        )}        {/* ================= POSTS ================= */}
 
-          <div className="card">
+        {posts.map((post) => (
 
-            <h3>No Posts Yet</h3>
+          <div
+            className="postCard"
+            key={post.id}
+          >
 
-            <p>Create your first post.</p>
+            <div className="postHeader">
+
+              <img
+                src={
+                  post.avatar
+                    ? `http://127.0.0.1:8000${post.avatar}`
+                    : defaultProfile
+                }
+                className="postAvatar"
+                alt="Profile"
+              />
+
+              <div>
+
+                <h4>{post.username}</h4>
+
+                <small>
+                  {new Date(
+                    post.created_at
+                  ).toLocaleString()}
+                </small>
+
+              </div>
+
+            </div>
+
+            <p className="postContent">
+              {post.content}
+            </p>
+
+            {post.images.length > 0 && (
+
+              <img
+                src={`http://127.0.0.1:8000${post.images[0].image}`}
+                className="postImage"
+                alt="Post"
+              />
+
+            )}
+
+            <div className="postActions">
+
+              <button>
+                👍 Like
+              </button>
+
+              <button>
+                💬 Comment
+              </button>
+
+              <button>
+                ↗ Share
+              </button>
+
+            </div>
 
           </div>
 
-        )}{/* ===========================
-   Dynamic Posts
-=========================== */}
+        ))}
+              </main>
 
-{fetchingPosts ? (
+      {/* ================= RIGHT SIDEBAR ================= */}
 
-  <div className="card">
-    <p>Loading posts...</p>
-  </div>
+      <aside className="rightSidebar">
 
-) : posts.length === 0 ? (
+        <div className="profileCard">
 
-  <div className="card">
-    <h3>No Posts Yet</h3>
-    <p>Create your first post.</p>
-  </div>
+          <img
+            src={
+              user?.profile?.avatar
+                ? `http://127.0.0.1:8000${user.profile.avatar}`
+                : defaultProfile
+            }
+            className="profileCardAvatar"
+            alt="Profile"
+          />
 
-) : (
+          <h3>{user.username || "User"}</h3>
 
-  posts.map((post) => (
+          <p>{user.email}</p>
 
-    <div className="postCard" key={post.id}>
-
-      <div className="postHeader">
-
-        <img
-          src={
-            post.avatar
-              ? `http://127.0.0.1:8000${post.avatar}`
-              : profile
-          }
-          alt="Profile"
-          className="postAvatar"
-        />
-
-        <div className="postUser">
-
-          <h4>{post.username}</h4>
-
-          <span>
-            {new Date(post.created_at).toLocaleString("en-US", {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })}
-          </span>
+          <button
+            className="viewProfileBtn"
+            onClick={() => navigate("/profile")}
+          >
+            View Profile
+          </button>
 
         </div>
 
-      </div>
+        <div className="rightCard">
 
-      <p className="postText">
-        {post.content}
-      </p>
+          <h3>🔥 Trending</h3>
 
-      {post.images.length > 0 && (
+          <ul>
+            <li>#ReactJS</li>
+            <li>#TypeScript</li>
+            <li>#Frontend</li>
+            <li>#ArtificialIntelligence</li>
+            <li>#WebDevelopment</li>
+          </ul>
 
-        <img
-          src={`http://127.0.0.1:8000${post.images[0].image}`}
-          alt="Post"
-          className="postImage"
-        />
+        </div>
 
-      )}
+        <div className="rightCard">
 
-      <div className="postActions">
+          <h3>Suggested People</h3>
 
-        <button
-          className="actionBtn"
-          onClick={handleLike}
-        >
-          👍 Like ({likes})
-        </button>
+          <div className="suggestItem">
+            <img src={sarah} alt="Sarah" />
+            <span>Sarah</span>
+          </div>
 
-        <button className="actionBtn">
-          💬 Comment
-        </button>
+          <div className="suggestItem">
+            <img src={marcus} alt="Marcus" />
+            <span>Marcus</span>
+          </div>
 
-        <button className="actionBtn">
-          ↗ Share
-        </button>
+          <div className="suggestItem">
+            <img src={elena} alt="Elena" />
+            <span>Elena</span>
+          </div>
 
-      </div>
+        </div>
+
+      </aside>
 
     </div>
-
-  ))
-
-)}
-
-{/* ===========================
-   Right Sidebar
-=========================== */}
-
-<aside className="rightSidebar">
-
-  <div className="profileMiniCard">
-
-    <img
-      src={profile}
-      className="miniAvatar"
-      alt="profile"
-    />
-
-    <h3>{user.username}</h3>
-
-    <p>{user.email}</p>
-
-    <button
-      className="profileBtn"
-      onClick={() => navigate("/profile")}
-    >
-      View Profile
-    </button>
-
-  </div>
-
-  <div className="card">
-
-    <h3>🔥 Trending</h3>
-
-    <p>#ReactJS</p>
-    <p>#TypeScript</p>
-    <p>#WebDevelopment</p>
-    <p>#ArtificialIntelligence</p>
-
-  </div>
-
-  <div className="card">
-
-    <h3>People You May Know</h3>
-
-    <div className="suggestUser">
-      <img src={sarah} alt="" />
-      <span>Sarah Johnson</span>
-    </div>
-
-    <div className="suggestUser">
-      <img src={marcus} alt="" />
-      <span>Marcus Lee</span>
-    </div>
-
-    <div className="suggestUser">
-      <img src={elens} alt="" />
-      <span>Elena White</span>
-    </div>
-
-  </div>
-
-</aside>
-
-</div>
-);
+  );
 }
