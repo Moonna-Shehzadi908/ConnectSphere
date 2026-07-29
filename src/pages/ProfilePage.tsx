@@ -98,10 +98,15 @@ export default function ProfilePage() {
       await loadProfile();
 
       alert("Profile updated successfully.");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update profile.");
+    } catch (err: any) {
+    console.log(err.response);
+
+    if (err.response?.data) {
+        alert(JSON.stringify(err.response.data));
+    } else {
+        alert(err.message);
     }
+}
   };
 
   // ===========================
