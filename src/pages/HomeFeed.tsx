@@ -86,6 +86,41 @@ export default function HomeFeed() {
       setLoading(false);
     }
   };
+  const formatPostContent = (text: string) => {
+  return text.split(/(\s+)/).map((word, index) => {
+    if (word.startsWith("#")) {
+      return (
+        <span
+          key={index}
+          style={{
+            color: "#2563eb",
+            fontWeight: "600",
+            cursor: "pointer",
+          }}
+        >
+          {word}
+        </span>
+      );
+    }
+
+    if (word.startsWith("@")) {
+      return (
+        <span
+          key={index}
+          style={{
+            color: "#0ea5e9",
+            fontWeight: "600",
+            cursor: "pointer",
+          }}
+        >
+          {word}
+        </span>
+      );
+    }
+
+    return word;
+  });
+};
 
   // ===============================
   // Logout
@@ -319,9 +354,9 @@ export default function HomeFeed() {
 
             </div>
 
-            <p className="postContent">
-              {post.content}
-            </p>
+           <p className="postContent">
+  {formatPostContent(post.content)}
+</p>
 
             {post.images.length > 0 && (
 
