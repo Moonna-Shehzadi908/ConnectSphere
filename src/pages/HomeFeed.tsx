@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getMyProfile } from "../services/profile";
 
 import api from "../services/api";
 
@@ -14,7 +15,6 @@ interface PostImage {
   id: number;
   image: string;
 }
-
 interface Post {
   id: number;
   username: string;
@@ -23,6 +23,9 @@ interface Post {
   visibility: string;
   created_at: string;
   images: PostImage[];
+
+  likes_count: number;
+  is_liked: boolean;
 }
 
 export default function HomeFeed() {
@@ -37,6 +40,22 @@ export default function HomeFeed() {
   const [loading, setLoading] = useState(false);
   const [fetchingPosts, setFetchingPosts] =
     useState(true);
+    const [profile, setProfile] = useState<any>(null);
+    const loadProfile = async () => {
+  try {
+    const data = await getMyProfile();
+
+    setProfile(data.profile);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+useEffect(() => {
+  fetchPosts();
+  loadProfile();
+}, []);
 
   // ===============================
   // Fetch Feed
@@ -86,6 +105,28 @@ export default function HomeFeed() {
       setLoading(false);
     }
   };
+  const handleLike = async (postId: number) => {
+  try {
+    await api.post(`/posts/${postId}/like/`);
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id !== postId) return post;
+
+        return {
+          ...post,
+          is_liked: !post.is_liked,
+          likes_count: post.is_liked
+            ? post.likes_count - 1
+            : post.likes_count + 1,
+        };
+      })
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+  
   const formatPostContent = (text: string) => {
   return text.split(/(\s+)/).map((word, index) => {
     if (word.startsWith("#")) {
@@ -222,11 +263,11 @@ export default function HomeFeed() {
             </span>
 
             <img
-              src={
-                user?.profile?.avatar
-                  ? `http://127.0.0.1:8000${user.profile.avatar}`
-                  : defaultProfile
-              }
+             src={
+  profile?.avatar
+    ? `http://127.0.0.1:8000${profile.avatar}`
+    : defaultProfile
+}
               className="miniAvatar"
               alt="Profile"
               onClick={() => navigate("/profile")}
@@ -282,12 +323,11 @@ export default function HomeFeed() {
         <div className="createPost">
 
           <img
-            src={
-              user?.profile?.avatar
-                ? `http://127.0.0.1:8000${user.profile.avatar}`
-                : defaultProfile
-            }
-            alt="Profile"
+           src={
+  profile?.avatar
+    ? `http://127.0.0.1:8000${profile.avatar}`
+    : defaultProfile
+}
           />
 
           <input
@@ -332,10 +372,10 @@ export default function HomeFeed() {
 
               <img
                 src={
-                  post.avatar
-                    ? `http://127.0.0.1:8000${post.avatar}`
-                    : defaultProfile
-                }
+  profile?.avatar
+    ? `http://127.0.0.1:8000${profile.avatar}`
+    : defaultProfile
+}
                 className="postAvatar"
                 alt="Profile"
               />
@@ -370,9 +410,11 @@ export default function HomeFeed() {
 
             <div className="postActions">
 
-              <button>
-                👍 Like
-              </button>
+             <button
+  onClick={() => handleLike(post.id)}
+>
+  {post.is_liked ? "❤️ Liked" : "🤍 Like"} ({post.likes_count})
+</button>
 
               <button>
                 💬 Comment
@@ -397,10 +439,10 @@ export default function HomeFeed() {
 
           <img
             src={
-              user?.profile?.avatar
-                ? `http://127.0.0.1:8000${user.profile.avatar}`
-                : defaultProfile
-            }
+  profile?.avatar
+    ? `http://127.0.0.1:8000${profile.avatar}`
+    : defaultProfile
+}
             className="profileCardAvatar"
             alt="Profile"
           />
