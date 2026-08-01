@@ -13,5 +13,20 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+api.interceptors.request.use((config) => {
+
+  const token = localStorage.getItem("access");
+
+  console.log("TOKEN =", token);
+  console.log("HEADER BEFORE =", config.headers);
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  console.log("HEADER AFTER =", config.headers);
+
+  return config;
+});
 
 export default api;

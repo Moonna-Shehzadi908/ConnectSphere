@@ -15,20 +15,35 @@ interface PostImage {
   id: number;
   image: string;
 }
+
 interface Post {
   id: number;
   username: string;
   avatar: string | null;
+
   content: string;
   visibility: string;
+
   created_at: string;
+
   images: PostImage[];
 
   likes_count: number;
   is_liked: boolean;
+
+  comments_count: number;
+
+  comments: {
+    id: number;
+    username: string;
+    avatar: string | null;
+    content: string;
+    created_at: string;
+  }[];
 }
 
 export default function HomeFeed() {
+
   const navigate = useNavigate();
 
   const user = JSON.parse(
@@ -38,25 +53,32 @@ export default function HomeFeed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [postText, setPostText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [fetchingPosts, setFetchingPosts] =
-    useState(true);
-    const [profile, setProfile] = useState<any>(null);
-    const loadProfile = async () => {
-  try {
-    const data = await getMyProfile();
+  const [fetchingPosts, setFetchingPosts] = useState(true);
 
-    setProfile(data.profile);
+  const [profile, setProfile] = useState<any>(null);
 
-  } catch (error) {
-    console.log(error);
-  }
-};
+  const [commentText, setCommentText] = useState<{
+    [key: number]: string;
+  }>({});
+const [openComments, setOpenComments] = useState<{
+  [key:number]:boolean;
+}>({});
 
-useEffect(() => {
-  fetchPosts();
-  loadProfile();
-}, []);
+  const loadProfile = async () => {
+    try {
+      const data = await getMyProfile();
 
+      setProfile(data.profile);
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+    loadProfile();
+  }, []);
   // ===============================
   // Fetch Feed
   // ===============================
@@ -126,7 +148,27 @@ useEffect(() => {
     console.log(error);
   }
 };
-  
+  const handleComment = async (postId: number) => {
+  const text = commentText[postId];
+
+  if (!text?.trim()) return;
+
+  try {
+    await api.post(`/posts/${postId}/comments/`, {
+      content: text,
+    });
+
+    setCommentText((prev) => ({
+      ...prev,
+      [postId]: "",
+    }));
+
+    fetchPosts();
+
+  } catch (error) {
+    console.log(error);
+  }
+};
   const formatPostContent = (text: string) => {
   return text.split(/(\s+)/).map((word, index) => {
     if (word.startsWith("#")) {
@@ -322,13 +364,16 @@ useEffect(() => {
 
         <div className="createPost">
 
-          <img
-           src={
-  profile?.avatar
-    ? `http://127.0.0.1:8000${profile.avatar}`
-    : defaultProfile
-}
-          />
+         <img
+  src={
+    user?.avatar
+      ? `http://127.0.0.1:8000${user.avatar}`
+      : profile?.avatar
+      ? `http://127.0.0.1:8000${profile.avatar}`
+      : defaultProfile
+  }
+  alt="Profile"
+/>
 
           <input
             type="text"
@@ -368,31 +413,29 @@ useEffect(() => {
             key={post.id}
           >
 
-            <div className="postHeader">
+           <div className="postHeader">
 
-              <img
-                src={
-  profile?.avatar
-    ? `http://127.0.0.1:8000${profile.avatar}`
-    : defaultProfile
-}
-                className="postAvatar"
-                alt="Profile"
-              />
+  <img
+    src={
+      post.avatar
+        ? `http://127.0.0.1:8000${post.avatar}`
+        : defaultProfile
+    }
+    className="postAvatar"
+    alt="Profile"
+  />
 
-              <div>
+  <div>
 
-                <h4>{post.username}</h4>
+    <h4>{post.username}</h4>
 
-                <small>
-                  {new Date(
-                    post.created_at
-                  ).toLocaleString()}
-                </small>
+    <small>
+      {new Date(post.created_at).toLocaleString()}
+    </small>
 
-              </div>
+  </div>
 
-            </div>
+</div>
 
            <p className="postContent">
   {formatPostContent(post.content)}
@@ -408,28 +451,90 @@ useEffect(() => {
 
             )}
 
-            <div className="postActions">
+           <div className="postActions">
 
-             <button
-  onClick={() => handleLike(post.id)}
->
-  {post.is_liked ? "❤️ Liked" : "🤍 Like"} ({post.likes_count})
-</button>
+  <button onClick={() => handleLike(post.id)}>
+    {post.is_liked ? "❤️ Liked" : "🤍 Like"} ({post.likes_count})
+  </button>
 
-              <button>
-                💬 Comment
-              </button>
+  <button
+    onClick={() =>
+      setOpenComments((prev) => ({
+        ...prev,
+        [post.id]: !prev[post.id],
+      }))
+    }
+  >
+    💬 Comments ({post.comments_count})
+  </button>
 
-              <button>
-                ↗ Share
-              </button>
+  <button>
+    ↗ Share
+  </button>
 
-            </div>
+</div>
+{openComments[post.id] && (
+  <div className="commentSection">
 
-          </div>
+    {post.comments?.map((comment) => (
 
-        ))}
-              </main>
+      <div
+        key={comment.id}
+        className="commentItem"
+      >
+
+        <img
+          className="commentAvatar"
+          src={
+            comment.avatar
+              ? `http://127.0.0.1:8000${comment.avatar}`
+              : defaultProfile
+          }
+          alt="Profile"
+        />
+
+        <div className="commentBody">
+
+          <strong>{comment.username}</strong>
+
+          <p>{comment.content}</p>
+
+        </div>
+
+      </div>
+
+    ))}
+
+    <div className="commentInput">
+
+      <input
+        type="text"
+        placeholder="Write a comment..."
+        value={commentText[post.id] || ""}
+        onChange={(e) =>
+          setCommentText((prev) => ({
+            ...prev,
+            [post.id]: e.target.value,
+          }))
+        }
+      />
+
+      <button
+        onClick={() => handleComment(post.id)}
+      >
+        Send
+      </button>
+
+    </div>
+
+  </div>
+)}
+
+</div>
+
+))}
+
+</main>
 
       {/* ================= RIGHT SIDEBAR ================= */}
 
