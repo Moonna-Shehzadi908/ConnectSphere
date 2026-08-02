@@ -127,6 +127,9 @@ const [openComments, setOpenComments] = useState<{
       setLoading(false);
     }
   };
+  // ===============================
+// Handle Like / Unlike Post
+// ==============================
   const handleLike = async (postId: number) => {
   try {
     await api.post(`/posts/${postId}/like/`);
@@ -482,7 +485,10 @@ const [openComments, setOpenComments] = useState<{
         key={comment.id}
         className="commentItem"
       >
-
+// ===============================
+// Handle Add Comment
+// Creates a new comment and refreshes the feed
+// ===============================
         <img
           className="commentAvatar"
           src={
