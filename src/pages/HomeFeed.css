@@ -495,3 +495,80 @@ body{
     color:#555;
     font-size:14px;
 }
+.commentInput{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+}
+
+.commentInput input{
+    flex:1;
+    padding:10px 14px;
+    border-radius:25px;
+    border:1px solid #ddd;
+    background:#fff;
+    color:#111;
+    outline:none;
+}
+
+.commentInput input::placeholder{
+    color:#777;
+}
+
+.commentInput button{
+    padding:10px 20px;
+    border:none;
+    border-radius:20px;
+    background:#0a66c2;
+    color:white;
+    cursor:pointer;
+}
+
+.commentInput button:hover{
+    background:#084d91;
+}
+.commentItem{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+    align-items:flex-start;
+}
+
+.commentAvatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.commentBody{
+    background:#f3f4f6;
+    padding:10px 14px;
+    border-radius:12px;
+    width:100%;
+}
+
+.commentBody strong{
+    display:block;
+    color:#111;
+    margin-bottom:4px;
+}
+
+.commentBody p{
+    color:#444;
+    margin:0;
+}
+.deleteCommentBtn{
+    margin-top:8px;
+    border:none;
+    background:#ef4444;
+    color:white;
+    padding:6px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.deleteCommentBtn:hover{
+    background:#dc2626;
+}

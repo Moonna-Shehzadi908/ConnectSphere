@@ -32,16 +32,15 @@ interface Post {
   is_liked: boolean;
 
   comments_count: number;
-
-  comments: {
-    id: number;
-    username: string;
-    avatar: string | null;
-    content: string;
-    created_at: string;
-  }[];
+comments: {
+  id: number;
+  username: string;
+  avatar: string | null;
+  content: string;
+  created_at: string;
+  is_owner: boolean;
+}[];
 }
-
 export default function HomeFeed() {
 
   const navigate = useNavigate();
@@ -99,9 +98,7 @@ const [openComments, setOpenComments] = useState<{
     }
   };
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+
 
   // ===============================
   // Create Post
@@ -157,17 +154,56 @@ const [openComments, setOpenComments] = useState<{
   if (!text?.trim()) return;
 
   try {
-    await api.post(`/posts/${postId}/comments/`, {
-      content: text,
-    });
+    const response = await api.post(
+      `/posts/${postId}/comments/`,
+      {
+        content: text,
+      }
+    );
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id !== postId) return post;
+
+        return {
+          ...post,
+          comments: [...post.comments, response.data],
+          comments_count: post.comments_count + 1,
+        };
+      })
+    );
 
     setCommentText((prev) => ({
       ...prev,
       [postId]: "",
     }));
 
-    fetchPosts();
+  } catch (error) {
+    console.log(error);
+  }
+};
+const handleDeleteComment = async (
+  postId: number,
+  commentId: number
+) => {
+  try {
+    await api.delete(
+      `/posts/comments/${commentId}/delete/`
+    );
 
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id !== postId) return post;
+
+        return {
+          ...post,
+          comments: post.comments.filter(
+            (comment) => comment.id !== commentId
+          ),
+          comments_count: post.comments_count - 1,
+        };
+      })
+    );
   } catch (error) {
     console.log(error);
   }
@@ -211,11 +247,16 @@ const [openComments, setOpenComments] = useState<{
   // ===============================
   // Logout
   // ===============================
+const handleLogout = () => {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  localStorage.removeItem("user");
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/signin");
-  };
+  alert("✅ Logout Successfully!");
+
+  navigate("/signin", { replace: true });
+};
+
 
   return (
     <div className="homeContainer">
@@ -418,15 +459,7 @@ const [openComments, setOpenComments] = useState<{
 
            <div className="postHeader">
 
-  <img
-    src={
-      post.avatar
-        ? `http://127.0.0.1:8000${post.avatar}`
-        : defaultProfile
-    }
-    className="postAvatar"
-    alt="Profile"
-  />
+ 
 
   <div>
 
@@ -471,9 +504,25 @@ const [openComments, setOpenComments] = useState<{
     💬 Comments ({post.comments_count})
   </button>
 
-  <button>
-    ↗ Share
-  </button>
+ <button
+  onClick={() => {
+    if (navigator.share) {
+      navigator.share({
+        title: "ConnectSphere Post",
+        text: post.content,
+        url: `${window.location.origin}/post/${post.id}`,
+      });
+    } else {
+      navigator.clipboard.writeText(
+        `${window.location.origin}/post/${post.id}`
+      );
+
+      alert("Post link copied!");
+    }
+  }}
+>
+  ↗ Share
+</button>
 
 </div>
 {openComments[post.id] && (
@@ -485,27 +534,30 @@ const [openComments, setOpenComments] = useState<{
         key={comment.id}
         className="commentItem"
       >
-// ===============================
-// Handle Add Comment
-// Creates a new comment and refreshes the feed
-// ===============================
-        <img
-          className="commentAvatar"
-          src={
-            comment.avatar
-              ? `http://127.0.0.1:8000${comment.avatar}`
-              : defaultProfile
-          }
-          alt="Profile"
-        />
 
-        <div className="commentBody">
+       
 
-          <strong>{comment.username}</strong>
+       <div className="commentBody">
 
-          <p>{comment.content}</p>
+  <strong>{comment.username}</strong>
 
-        </div>
+  <p>{comment.content}</p>
+
+  {comment.is_owner && (
+    <button
+      className="deleteCommentBtn"
+      onClick={() =>
+        handleDeleteComment(
+          post.id,
+          comment.id
+        )
+      }
+    >
+      🗑 Delete
+    </button>
+  )}
+
+</div>
 
       </div>
 
