@@ -34,6 +34,7 @@ export default function MessagesPage() {
   ];
 
   const [selectedChat, setSelectedChat] = useState(chats[0]);
+
   const [message, setMessage] = useState("");
 
   const [messages, setMessages] = useState([
@@ -50,8 +51,8 @@ export default function MessagesPage() {
   const sendMessage = () => {
     if (!message.trim()) return;
 
-    setMessages([
-      ...messages,
+    setMessages((prev) => [
+      ...prev,
       {
         sender: "me",
         text: message,
@@ -60,85 +61,163 @@ export default function MessagesPage() {
 
     setMessage("");
   };
-const handleLogout = () => {
-  localStorage.removeItem("user"); // dummy logout
-  alert("Logged out successfully!");
-  navigate("/signin");
-};
+
+  const handleLogout = () => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("user");
+
+    alert("✅ Logout Successfully!");
+
+    navigate("/signin", { replace: true });
+  };
+
   return (
     <div className="messagePage">
+
       {/* LEFT SIDEBAR */}
+
       <aside className="sidebar">
-        <h2 className="logo">ConnectSphere</h2>
 
-       <ul>
-          <li onClick={() => navigate("/home")}>📄 Feed</li>
-          <li onClick={() => navigate("/messages")}>💬 Messaging</li>
-          <li onClick={() => navigate("/analytics")}>📊 Analytics</li>
-          <li onClick={() => navigate("/monetization")}>💰 Monetization</li>
-          <li className="active">🛡 Moderation</li>
-          <li onClick={() => navigate("/system")}>⚙ System</li>
+        <h2 className="logo">
+          ConnectSphere
+        </h2>
+
+        <ul>
+
+          <li onClick={() => navigate("/home")}>
+            📄 Feed
+          </li>
+
+          <li className="active">
+            💬 Messaging
+          </li>
+
+          <li onClick={() => navigate("/analytics")}>
+            📊 Analytics
+          </li>
+
+          <li onClick={() => navigate("/monetization")}>
+            💰 Monetization
+          </li>
+
+          <li onClick={() => navigate("/moderation")}>
+            🛡 Moderation
+          </li>
+
+          <li onClick={() => navigate("/system")}>
+            ⚙ System
+          </li>
+
         </ul>
-<button
-  className="createBtn"
-  onClick={() => navigate("/create-post")}
->
-  Create Post
-</button>
 
-<button className="logoutBtn" onClick={handleLogout}>
-  Logout
-</button>
+        <button
+          className="createBtn"
+          onClick={() => navigate("/create-post")}
+        >
+          Create Post
+        </button>
 
-<button className="backBtn" onClick={() => navigate("/home")}>
-  ← Back
-</button>
+        <button
+          className="logoutBtn"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+
+        <button
+          className="backBtn"
+          onClick={() => navigate("/home")}
+        >
+          ← Back
+        </button>
+
       </aside>
 
       {/* CHAT LIST */}
+
       <div className="chatSidebar">
+
         <div className="chatHeader">
+
           <h3>Messages</h3>
+
           <button>✎</button>
+
         </div>
 
-        <input placeholder="Search messages..." />
+        <input
+          type="text"
+          placeholder="Search messages..."
+        />
 
         {chats.map((chat) => (
+
           <div
             key={chat.id}
             className={`chatItem ${
-              selectedChat.id === chat.id ? "selected" : ""
+              selectedChat.id === chat.id
+                ? "selected"
+                : ""
             }`}
             onClick={() => setSelectedChat(chat)}
           >
-            <img src={profile} alt="" />
+
+            <img
+              src={profile}
+              alt=""
+            />
 
             <div>
+
               <h4>{chat.name}</h4>
+
               <p>{chat.message}</p>
+
             </div>
+
           </div>
+
         ))}
+
       </div>
 
       {/* CHAT WINDOW */}
+
       <div className="chatWindow">
+
         <div className="topBar">
+
           <div className="userInfo">
-            <img src={profile} alt="" />
+
+            <img
+              src={profile}
+              alt=""
+            />
 
             <div>
+
               <h4>{selectedChat.name}</h4>
-              <p>{selectedChat.online ? "Online" : "Offline"}</p>
+
+              <p>
+                {selectedChat.online
+                  ? "🟢 Online"
+                  : "⚪ Offline"}
+              </p>
+
             </div>
+
           </div>
 
-          <div className="topIcons">📹 📞 ⋮</div>
-        </div>
+          <div className="topIcons">
+            📹 📞 ⋮
+          </div>
 
-        <div className="messagesBox">
+        </div>
+                <div className="messagesBox">
+
           {messages.map((msg, index) => (
+
             <div
               key={index}
               className={
@@ -149,19 +228,35 @@ const handleLogout = () => {
             >
               {msg.text}
             </div>
+
           ))}
+
         </div>
 
         <div className="messageInput">
+
           <input
+            type="text"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) =>
+              setMessage(e.target.value)
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                sendMessage();
+              }
+            }}
             placeholder="Write a message..."
           />
 
-          <button onClick={sendMessage}>➤</button>
+          <button onClick={sendMessage}>
+            ➤
+          </button>
+
         </div>
+
       </div>
+
     </div>
   );
 }
