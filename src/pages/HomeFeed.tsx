@@ -25,6 +25,7 @@ interface Post {
   visibility: string;
 
   created_at: string;
+  updated_at: string;
 
   images: PostImage[];
 
@@ -32,14 +33,20 @@ interface Post {
   is_liked: boolean;
 
   comments_count: number;
-comments: {
-  id: number;
-  username: string;
-  avatar: string | null;
-  content: string;
-  created_at: string;
+
+  // 👇 NEW FIELDS
   is_owner: boolean;
-}[];
+  is_pinned: boolean;
+  is_archived: boolean;
+
+  comments: {
+    id: number;
+    username: string;
+    avatar: string | null;
+    content: string;
+    created_at: string;
+    is_owner: boolean;
+  }[];
 }
 export default function HomeFeed() {
 
@@ -53,6 +60,7 @@ export default function HomeFeed() {
   const [postText, setPostText] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchingPosts, setFetchingPosts] = useState(true);
+  const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   const [profile, setProfile] = useState<any>(null);
 
@@ -110,10 +118,10 @@ const [openComments, setOpenComments] = useState<{
     try {
       setLoading(true);
 
-      await api.post("/posts/", {
-        content: postText,
-        visibility: "PUBLIC",
-      });
+     await api.post("/posts/create/", {
+  content: postText,
+  visibility: "PUBLIC",
+});
 
       setPostText("");
 
@@ -459,17 +467,90 @@ const handleLogout = () => {
 
            <div className="postHeader">
 
- 
+  <div className="postUser">
 
-  <div>
+    <div>
 
-    <h4>{post.username}</h4>
+      <h4>{post.username}</h4>
 
-    <small>
-      {new Date(post.created_at).toLocaleString()}
-    </small>
+      <small>
+        {new Date(post.created_at).toLocaleString()}
+      </small>
+
+      {post.is_pinned && (
+        <span className="pinBadge">
+          📌 Pinned
+        </span>
+      )}
+
+    </div>
 
   </div>
+
+  {post.is_owner && (
+
+    <div className="postMenu">
+
+      <button
+        className="menuBtn"
+        onClick={() =>
+          setOpenMenu(
+            openMenu === post.id
+              ? null
+              : post.id
+          )
+        }
+      >
+        ⋮
+      </button>
+
+      {openMenu === post.id && (
+
+        <div className="menuDropdown">
+
+          <button>
+            ✏ Edit Post
+          </button>
+
+          <button>
+            🗑 Delete Post
+          </button>
+
+          {post.is_pinned ? (
+
+            <button>
+              📍 Unpin Post
+            </button>
+
+          ) : (
+
+            <button>
+              📌 Pin Post
+            </button>
+
+          )}
+
+          {post.is_archived ? (
+
+            <button>
+              ♻ Restore
+            </button>
+
+          ) : (
+
+            <button>
+              📦 Archive
+            </button>
+
+          )}
+
+        </div>
+
+      )}
+
+    </div>
+
+  )}
 
 </div>
 
