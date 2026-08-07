@@ -208,12 +208,15 @@ const handleDeleteComment = async (
           comments: post.comments.filter(
             (comment) => comment.id !== commentId
           ),
-          comments_count: post.comments_count - 1,
+          comments_count:
+            post.comments_count - 1,
         };
       })
     );
+
   } catch (error) {
-    console.log(error);
+    console.log("Delete comment error:", error);
+    alert("Failed to delete comment.");
   }
 };
   const formatPostContent = (text: string) => {
@@ -251,7 +254,231 @@ const handleDeleteComment = async (
     return word;
   });
 };
+// ===============================
+// Edit Post
+// ===============================
 
+const handleEditPost = async (post: Post) => {
+  const newContent = window.prompt(
+    "Edit your post:",
+    post.content
+  );
+
+  // Cancel ya empty text
+  if (newContent === null) return;
+
+  if (!newContent.trim()) {
+    alert("Post cannot be empty.");
+    return;
+  }
+
+  // Agar same text hai to kuch nahi karna
+  if (newContent.trim() === post.content.trim()) {
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const response = await api.put(
+      `/posts/${post.id}/update/`,
+      {
+        content: newContent.trim(),
+        visibility: post.visibility,
+      }
+    );
+
+    // Updated post ko frontend state mein replace karo
+    setPosts((prevPosts) =>
+      prevPosts.map((item) =>
+        item.id === post.id
+          ? {
+              ...item,
+              ...response.data,
+            }
+          : item
+      )
+    );
+
+    setOpenMenu(null);
+
+  } catch (error) {
+    console.log("Edit post error:", error);
+    alert("Failed to edit post.");
+  } finally {
+    setLoading(false);
+  }
+};
+// ===============================
+// Delete Post
+// ===============================
+
+const handleDeletePost = async (postId: number) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this post?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    setLoading(true);
+
+    await api.delete(
+      `/posts/${postId}/delete/`
+    );
+
+    // Remove deleted post from UI
+    setPosts((prevPosts) =>
+      prevPosts.filter(
+        (post) => post.id !== postId
+      )
+    );
+
+    setOpenMenu(null);
+
+  } catch (error) {
+    console.log(
+      "Delete post error:",
+      error
+    );
+
+    alert("Failed to delete post.");
+  } finally {
+    setLoading(false);
+  }
+};
+// ===============================
+// Pin / Unpin Post
+// ===============================
+
+const handlePinPost = async (post: Post) => {
+  try {
+    setLoading(true);
+
+    const response = await api.post(
+      `/posts/${post.id}/pin/`
+    );
+
+    setPosts((prevPosts) =>
+      prevPosts.map((item) =>
+        item.id === post.id
+          ? {
+              ...item,
+              ...response.data,
+              is_pinned: true,
+            }
+          : item
+      )
+    );
+
+    setOpenMenu(null);
+
+  } catch (error) {
+    console.log("Pin post error:", error);
+    alert("Failed to pin post.");
+  } finally {
+    setLoading(false);
+  }
+};
+// ===============================
+// Unpin Post
+// ===============================
+
+const handleUnpinPost = async (postId: number) => {
+  try {
+    setLoading(true);
+
+    const response = await api.post(
+      `/posts/${postId}/unpin/`
+    );
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              ...response.data,
+              is_pinned: false,
+            }
+          : post
+      )
+    );
+
+    setOpenMenu(null);
+
+  } catch (error) {
+    console.log("Unpin post error:", error);
+    alert("Failed to unpin post.");
+  } finally {
+    setLoading(false);
+  }
+};
+// ===============================
+// Archive Post
+// ===============================
+
+const handleArchivePost = async (postId: number) => {
+  try {
+    setLoading(true);
+
+    const response = await api.post(
+      `/posts/${postId}/archive/`
+    );
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              ...response.data,
+              is_archived: true,
+            }
+          : post
+      )
+    );
+
+    setOpenMenu(null);
+
+  } catch (error) {
+    console.log("Archive post error:", error);
+    alert("Failed to archive post.");
+  } finally {
+    setLoading(false);
+  }
+};
+// ===============================
+// Restore Post
+// ===============================
+
+const handleRestorePost = async (postId: number) => {
+  try {
+    setLoading(true);
+
+    const response = await api.post(
+      `/posts/${postId}/restore/`
+    );
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              ...response.data,
+              is_archived: false,
+            }
+          : post
+      )
+    );
+
+    setOpenMenu(null);
+
+  } catch (error) {
+    console.log("Restore post error:", error);
+    alert("Failed to restore post.");
+  } finally {
+    setLoading(false);
+  }
+};
   // ===============================
   // Logout
   // ===============================
@@ -508,39 +735,53 @@ const handleLogout = () => {
 
         <div className="menuDropdown">
 
-          <button>
-            ✏ Edit Post
-          </button>
+       <button
+  onClick={() => handleEditPost(post)}
+>
+  ✏ Edit Post
+</button>
 
-          <button>
-            🗑 Delete Post
-          </button>
+          <button
+  onClick={() =>
+    handleDeletePost(post.id)
+  }
+>
+  🗑 Delete Post
+</button>
 
           {post.is_pinned ? (
 
-            <button>
-              📍 Unpin Post
-            </button>
+           <button
+  onClick={() => handleUnpinPost(post.id)}
+>
+  📍 Unpin Post
+</button>
 
           ) : (
 
-            <button>
-              📌 Pin Post
-            </button>
+         <button
+  onClick={() => handlePinPost(post)}
+>
+  📌 Pin Post
+</button>
 
           )}
 
           {post.is_archived ? (
 
-            <button>
-              ♻ Restore
-            </button>
+          <button
+  onClick={() => handleRestorePost(post.id)}
+>
+  ♻ Restore
+</button>
 
           ) : (
 
-            <button>
-              📦 Archive
-            </button>
+          <button
+  onClick={() => handleArchivePost(post.id)}
+>
+  📦 Archive
+</button>
 
           )}
 
