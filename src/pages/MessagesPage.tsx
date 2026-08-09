@@ -1,66 +1,168 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./MessagesPage.css";
+
 import profile from "../assets/company.webp";
+
+interface Chat {
+  id: number;
+  name: string;
+  message: string;
+  online: boolean;
+  unread: number;
+}
+
+interface Message {
+  id: number;
+  sender: "me" | "them";
+  text: string;
+  time: string;
+}
 
 export default function MessagesPage() {
   const navigate = useNavigate();
 
-  const chats = [
+  // ===============================
+  // Chats
+  // ===============================
+
+  const chats: Chat[] = [
     {
       id: 1,
       name: "Sarah Jenkins",
       message: "Hi! Final file sent.",
       online: true,
+      unread: 2,
     },
     {
       id: 2,
       name: "Mona Chen",
       message: "Let's review tomorrow.",
       online: false,
+      unread: 0,
     },
     {
       id: 3,
       name: "David Rodriguez",
       message: "Meeting at 5 PM",
       online: false,
+      unread: 1,
     },
     {
       id: 4,
       name: "Project Alpha Team",
       message: "Task updated",
       online: true,
+      unread: 4,
     },
   ];
 
-  const [selectedChat, setSelectedChat] = useState(chats[0]);
+  const [selectedChat, setSelectedChat] = useState<Chat>(chats[0]);
+
+  const [searchText, setSearchText] = useState("");
 
   const [message, setMessage] = useState("");
 
-  const [messages, setMessages] = useState([
+  const [showChatInfo, setShowChatInfo] = useState(false);
+
+  // ===============================
+  // Messages
+  // ===============================
+
+  const [messages, setMessages] = useState<Message[]>([
     {
+      id: 1,
       sender: "them",
       text: "Hi! Final file is ready for review.",
+      time: "4:42 PM",
     },
     {
+      id: 2,
       sender: "me",
       text: "Great, send it here.",
+      time: "4:43 PM",
+    },
+    {
+      id: 3,
+      sender: "them",
+      text: "Sure! I have sent the final version.",
+      time: "4:44 PM",
     },
   ]);
 
+  // ===============================
+  // Search Chats
+  // ===============================
+
+  const filteredChats = useMemo(() => {
+    const search = searchText.trim().toLowerCase();
+
+    if (!search) {
+      return chats;
+    }
+
+    return chats.filter((chat) =>
+      chat.name.toLowerCase().includes(search)
+    );
+  }, [searchText]);
+
+  // ===============================
+  // Select Chat
+  // ===============================
+
+  const handleSelectChat = (chat: Chat) => {
+    setSelectedChat(chat);
+    setShowChatInfo(false);
+
+    // Backend connect hone par yahan
+    // selected chat ke messages fetch honge.
+  };
+
+  // ===============================
+  // Send Message
+  // ===============================
+
   const sendMessage = () => {
-    if (!message.trim()) return;
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) {
+      return;
+    }
+
+    const newMessage: Message = {
+      id: Date.now(),
+      sender: "me",
+      text: trimmedMessage,
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
 
     setMessages((prev) => [
       ...prev,
-      {
-        sender: "me",
-        text: message,
-      },
+      newMessage,
     ]);
 
     setMessage("");
   };
+
+  // ===============================
+  // Enter Key
+  // ===============================
+
+  const handleMessageKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendMessage();
+    }
+  };
+
+  // ===============================
+  // Logout
+  // ===============================
 
   const handleLogout = () => {
     localStorage.removeItem("access");
@@ -69,13 +171,17 @@ export default function MessagesPage() {
 
     alert("✅ Logout Successfully!");
 
-    navigate("/signin", { replace: true });
+    navigate("/signin", {
+      replace: true,
+    });
   };
 
   return (
     <div className="messagePage">
 
-      {/* LEFT SIDEBAR */}
+      {/* =====================================
+          LEFT SIDEBAR
+      ====================================== */}
 
       <aside className="sidebar">
 
@@ -85,7 +191,9 @@ export default function MessagesPage() {
 
         <ul>
 
-          <li onClick={() => navigate("/home")}>
+          <li
+            onClick={() => navigate("/home")}
+          >
             📄 Feed
           </li>
 
@@ -93,19 +201,27 @@ export default function MessagesPage() {
             💬 Messaging
           </li>
 
-          <li onClick={() => navigate("/analytics")}>
+          <li
+            onClick={() => navigate("/analytics")}
+          >
             📊 Analytics
           </li>
 
-          <li onClick={() => navigate("/monetization")}>
+          <li
+            onClick={() => navigate("/monetization")}
+          >
             💰 Monetization
           </li>
 
-          <li onClick={() => navigate("/moderation")}>
+          <li
+            onClick={() => navigate("/moderation")}
+          >
             🛡 Moderation
           </li>
 
-          <li onClick={() => navigate("/system")}>
+          <li
+            onClick={() => navigate("/system")}
+          >
             ⚙ System
           </li>
 
@@ -134,72 +250,179 @@ export default function MessagesPage() {
 
       </aside>
 
-      {/* CHAT LIST */}
 
-      <div className="chatSidebar">
+      {/* =====================================
+          CHAT LIST
+      ====================================== */}
+
+      <section className="chatSidebar">
 
         <div className="chatHeader">
 
-          <h3>Messages</h3>
+          <h3>
+            Messages
+          </h3>
 
-          <button>✎</button>
+          <button
+            className="newMessageBtn"
+            title="New message"
+            onClick={() => {
+              alert("New message feature will be connected to backend.");
+            }}
+          >
+            ✎
+          </button>
 
         </div>
 
-        <input
-          type="text"
-          placeholder="Search messages..."
-        />
 
-        {chats.map((chat) => (
+        {/* Search */}
 
-          <div
-            key={chat.id}
-            className={`chatItem ${
-              selectedChat.id === chat.id
-                ? "selected"
-                : ""
-            }`}
-            onClick={() => setSelectedChat(chat)}
-          >
+        <div className="chatSearch">
 
-            <img
-              src={profile}
-              alt=""
-            />
+          <span>
+            🔍
+          </span>
 
-            <div>
+          <input
+            type="text"
+            placeholder="Search messages..."
+            value={searchText}
+            onChange={(event) =>
+              setSearchText(event.target.value)
+            }
+          />
 
-              <h4>{chat.name}</h4>
+          {searchText && (
+            <button
+              className="clearSearch"
+              onClick={() => setSearchText("")}
+            >
+              ×
+            </button>
+          )}
 
-              <p>{chat.message}</p>
+        </div>
 
+
+        {/* Chat List */}
+
+        <div className="chatList">
+
+          {filteredChats.length > 0 ? (
+
+            filteredChats.map((chat) => (
+
+              <div
+                key={chat.id}
+                className={`chatItem ${
+                  selectedChat.id === chat.id
+                    ? "selected"
+                    : ""
+                }`}
+                onClick={() =>
+                  handleSelectChat(chat)
+                }
+              >
+
+                <div className="chatAvatarWrapper">
+
+                  <img
+                    src={profile}
+                    alt={chat.name}
+                    className="chatAvatar"
+                  />
+
+                  {chat.online && (
+                    <span className="onlineDot" />
+                  )}
+
+                </div>
+
+
+                <div className="chatDetails">
+
+                  <div className="chatNameRow">
+
+                    <h4>
+                      {chat.name}
+                    </h4>
+
+                    {chat.unread > 0 && (
+                      <span className="unreadBadge">
+                        {chat.unread}
+                      </span>
+                    )}
+
+                  </div>
+
+                  <p>
+                    {chat.message}
+                  </p>
+
+                </div>
+
+              </div>
+
+            ))
+
+          ) : (
+
+            <div className="noChats">
+              <span>🔍</span>
+              <p>
+                No conversations found.
+              </p>
             </div>
 
-          </div>
+          )}
 
-        ))}
+        </div>
 
-      </div>
+      </section>
 
-      {/* CHAT WINDOW */}
 
-      <div className="chatWindow">
+      {/* =====================================
+          CHAT WINDOW
+      ====================================== */}
+
+      <main className="chatWindow">
+
+
+        {/* Top Bar */}
 
         <div className="topBar">
 
           <div className="userInfo">
 
-            <img
-              src={profile}
-              alt=""
-            />
+            <div className="topAvatarWrapper">
+
+              <img
+                src={profile}
+                alt={selectedChat.name}
+                className="topAvatar"
+              />
+
+              {selectedChat.online && (
+                <span className="topOnlineDot" />
+              )}
+
+            </div>
+
 
             <div>
 
-              <h4>{selectedChat.name}</h4>
+              <h4>
+                {selectedChat.name}
+              </h4>
 
-              <p>
+              <p
+                className={
+                  selectedChat.online
+                    ? "onlineStatus"
+                    : "offlineStatus"
+                }
+              >
                 {selectedChat.online
                   ? "🟢 Online"
                   : "⚪ Offline"}
@@ -209,53 +432,177 @@ export default function MessagesPage() {
 
           </div>
 
+
           <div className="topIcons">
-            📹 📞 ⋮
+
+            <button
+              title="Video call"
+              onClick={() =>
+                alert("Video call feature coming soon.")
+              }
+            >
+              📹
+            </button>
+
+            <button
+              title="Voice call"
+              onClick={() =>
+                alert("Voice call feature coming soon.")
+              }
+            >
+              📞
+            </button>
+
+            <button
+              title="Chat information"
+              onClick={() =>
+                setShowChatInfo((prev) => !prev)
+              }
+            >
+              ⋮
+            </button>
+
           </div>
 
         </div>
-                <div className="messagesBox">
 
-          {messages.map((msg, index) => (
+
+        {/* Chat Info */}
+
+        {showChatInfo && (
+
+          <div className="chatInfoPanel">
+
+            <img
+              src={profile}
+              alt={selectedChat.name}
+            />
+
+            <h3>
+              {selectedChat.name}
+            </h3>
+
+            <p>
+              {selectedChat.online
+                ? "Online"
+                : "Offline"}
+            </p>
+
+            <div className="chatInfoActions">
+
+              <button>
+                👤 Profile
+              </button>
+
+              <button>
+                🔕 Mute
+              </button>
+
+              <button>
+                🚫 Block
+              </button>
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* Messages */}
+
+        <div className="messagesBox">
+
+          {messages.map((msg) => (
 
             <div
-              key={index}
-              className={
+              key={msg.id}
+              className={`messageRow ${
                 msg.sender === "me"
-                  ? "message me"
-                  : "message them"
-              }
+                  ? "myMessageRow"
+                  : "theirMessageRow"
+              }`}
             >
-              {msg.text}
+
+              {msg.sender === "them" && (
+                <img
+                  src={profile}
+                  alt={selectedChat.name}
+                  className="messageAvatar"
+                />
+              )}
+
+              <div
+                className={`message ${
+                  msg.sender === "me"
+                    ? "me"
+                    : "them"
+                }`}
+              >
+
+                <span className="messageText">
+                  {msg.text}
+                </span>
+
+                <span className="messageTime">
+                  {msg.time}
+                </span>
+
+              </div>
+
             </div>
 
           ))}
 
         </div>
 
+
+        {/* Message Input */}
+
         <div className="messageInput">
+
+          <button
+            className="attachmentBtn"
+            title="Attach file"
+            onClick={() =>
+              alert("Attachment feature will be connected later.")
+            }
+          >
+            📎
+          </button>
 
           <input
             type="text"
             value={message}
-            onChange={(e) =>
-              setMessage(e.target.value)
+            onChange={(event) =>
+              setMessage(event.target.value)
             }
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                sendMessage();
-              }
-            }}
-            placeholder="Write a message..."
+            onKeyDown={handleMessageKeyDown}
+            placeholder={`Message ${selectedChat.name}...`}
           />
 
-          <button onClick={sendMessage}>
+          <button
+            className="emojiBtn"
+            title="Emoji"
+            onClick={() =>
+              setMessage((prev) => `${prev} 😊`)
+            }
+          >
+            😊
+          </button>
+
+          <button
+            className="sendBtn"
+            onClick={sendMessage}
+            disabled={!message.trim()}
+            title="Send message"
+          >
             ➤
           </button>
 
         </div>
 
-      </div>
+      </main>
 
     </div>
   );
