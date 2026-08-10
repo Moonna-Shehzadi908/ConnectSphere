@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CreatePostPage.css";
-import profile from "../assets/grl dp.webp";
+import profile from "../assets/profile icone.jpg";
+import { createPost } from "../services/postApi";
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
@@ -13,28 +14,142 @@ export default function CreatePostPage() {
   const [hashtags, setHashtags] = useState("");
   const [image, setImage] = useState<File | null>(null);
 
+  const [publishing, setPublishing] = useState(false);
+
+  // ==========================
+  // LOGOUT
+  // ==========================
+
   const handleLogout = () => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
     localStorage.removeItem("user");
+
     alert("Logged out successfully!");
-    navigate("/signin");
+
+    navigate("/signin", { replace: true });
   };
 
-  const handlePublish = () => {
-    if (!title || !description) {
+  // ==========================
+  // PUBLISH POST
+  // ==========================
+
+  const handlePublish = async () => {
+    if (!title.trim() || !description.trim()) {
       alert("Please enter title and description.");
       return;
     }
 
-    alert("✅ Post published successfully.");
+    try {
+      setPublishing(true);
+
+      /*
+       * Backend currently supports:
+       * - content
+       * - visibility
+       * - images
+       *
+       * Title and category are not separate backend fields.
+       * Therefore title + description + hashtags are combined
+       * into the content field.
+       */
+
+      let content = `${title.trim()}\n\n${description.trim()}`;
+
+      if (hashtags.trim()) {
+        content += `\n\n${hashtags.trim()}`;
+      }
+
+      /*
+       * Backend supports:
+       * PUBLIC
+       * PRIVATE
+       *
+       * Followers is not currently supported by backend.
+       * So Followers currently behaves as PUBLIC.
+       */
+
+      const visibility =
+        audience === "Private"
+          ? "PRIVATE"
+          : "PUBLIC";
+
+      /*
+       * Send content, visibility and image separately.
+       * createPost() will create the FormData and send
+       * the request to POST /posts/.
+       */
+
+     await createPost(
+  content,
+  visibility,
+  image
+);
+
+      alert("✅ Post published successfully.");
+
+      // Clear form
+      setTitle("");
+      setDescription("");
+      setCategory("Technology");
+      setAudience("Public");
+      setHashtags("");
+      setImage(null);
+
+      // Return to HomeFeed
+      navigate("/home");
+
+    } catch (error: any) {
+      console.error(
+        "Create post error:",
+        error
+      );
+
+      if (error.response?.data) {
+        console.error(
+          "Backend response:",
+          error.response.data
+        );
+
+        alert(
+          typeof error.response.data === "string"
+            ? error.response.data
+            : JSON.stringify(
+                error.response.data
+              )
+        );
+      } else {
+        alert(
+          "❌ Failed to publish post. Please try again."
+        );
+      }
+
+    } finally {
+      setPublishing(false);
+    }
   };
 
+  // ==========================
+  // SAVE DRAFT
+  // ==========================
+
   const handleDraft = () => {
-    alert("📂 Draft saved successfully.");
+    alert(
+      "📂 Draft feature is not connected to the backend yet."
+    );
   };
+
+  // ==========================
+  // PREVIEW
+  // ==========================
 
   const handlePreview = () => {
     alert("👀 Live Preview Updated.");
   };
+
+  // ==========================
+  // CLEAR FORM
+  // ==========================
 
   const handleClear = () => {
     setTitle("");
@@ -47,38 +162,86 @@ export default function CreatePostPage() {
     alert("Form cleared.");
   };
 
+  // ==========================
+  // IMAGE SELECT
+  // ==========================
+
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files?.length) {
+      setImage(e.target.files[0]);
+    }
+  };
+
+  // ==========================
+  // IMAGE PREVIEW
+  // ==========================
+
+  const imagePreview = image
+    ? URL.createObjectURL(image)
+    : null;
+
   return (
     <div className="createPostPage">
 
-      {/* Sidebar */}
+      {/* ==========================
+          SIDEBAR
+      ========================== */}
 
       <aside className="sidebar">
 
-        <h2 className="logo">ConnectSphere</h2>
+        <h2 className="logo">
+          ConnectSphere
+        </h2>
 
         <ul>
 
-          <li onClick={() => navigate("/home")}>
+          <li
+            onClick={() =>
+              navigate("/home")
+            }
+          >
             📄 Feed
           </li>
 
-          <li onClick={() => navigate("/messages")}>
+          <li
+            onClick={() =>
+              navigate("/messages")
+            }
+          >
             💬 Messaging
           </li>
 
-          <li onClick={() => navigate("/analytics")}>
+          <li
+            onClick={() =>
+              navigate("/analytics")
+            }
+          >
             📊 Analytics
           </li>
 
-          <li onClick={() => navigate("/monetization")}>
+          <li
+            onClick={() =>
+              navigate("/monetization")
+            }
+          >
             💰 Monetization
           </li>
 
-          <li onClick={() => navigate("/moderation")}>
+          <li
+            onClick={() =>
+              navigate("/moderation")
+            }
+          >
             🛡 Moderation
           </li>
 
-          <li onClick={() => navigate("/system")}>
+          <li
+            onClick={() =>
+              navigate("/system")
+            }
+          >
             ⚙ System
           </li>
 
@@ -97,14 +260,18 @@ export default function CreatePostPage() {
 
         <button
           className="backBtn"
-          onClick={() => navigate("/home")}
+          onClick={() =>
+            navigate("/home")
+          }
         >
           ← Back
         </button>
 
       </aside>
 
-      {/* Main Content */}
+      {/* ==========================
+          MAIN CONTENT
+      ========================== */}
 
       <main className="mainContent">
 
@@ -113,132 +280,206 @@ export default function CreatePostPage() {
         </h1>
 
         <p className="pageSubTitle">
-          Share ideas, updates and professional insights with your ConnectSphere community.
+          Share ideas, updates and professional
+          insights with your ConnectSphere community.
         </p>
 
         <div className="formCard">
 
+          {/* ==========================
+              TITLE
+          ========================== */}
+
           <div className="formGroup">
 
-            <label>Post Title *</label>
+            <label>
+              Post Title *
+            </label>
 
             <input
               type="text"
               placeholder="Example: The Future of Artificial Intelligence"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) =>
+                setTitle(e.target.value)
+              }
             />
 
           </div>
 
+          {/* ==========================
+              DESCRIPTION
+          ========================== */}
+
           <div className="formGroup">
 
-            <label>Description *</label>
+            <label>
+              Description *
+            </label>
 
             <textarea
               placeholder="Write a professional post that engages your audience..."
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) =>
+                setDescription(e.target.value)
+              }
             />
 
           </div>
-                    {/* Category & Audience */}
+
+          {/* ==========================
+              CATEGORY & AUDIENCE
+          ========================== */}
 
           <div className="row">
 
             <div className="formGroup">
 
-              <label>Category</label>
+              <label>
+                Category
+              </label>
 
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) =>
+                  setCategory(e.target.value)
+                }
               >
-                <option>Technology</option>
-                <option>Business</option>
-                <option>Design</option>
-                <option>Marketing</option>
-                <option>Education</option>
-                <option>Career</option>
+
+                <option value="Technology">
+                  Technology
+                </option>
+
+                <option value="Business">
+                  Business
+                </option>
+
+                <option value="Design">
+                  Design
+                </option>
+
+                <option value="Marketing">
+                  Marketing
+                </option>
+
+                <option value="Education">
+                  Education
+                </option>
+
+                <option value="Career">
+                  Career
+                </option>
+
               </select>
 
             </div>
 
             <div className="formGroup">
 
-              <label>Audience</label>
+              <label>
+                Audience
+              </label>
 
               <select
                 value={audience}
-                onChange={(e) => setAudience(e.target.value)}
+                onChange={(e) =>
+                  setAudience(e.target.value)
+                }
               >
-                <option>Public</option>
-                <option>Followers</option>
-                <option>Private</option>
+
+                <option value="Public">
+                  Public
+                </option>
+
+                <option value="Private">
+                  Private
+                </option>
+
+                <option value="Followers">
+                  Followers
+                </option>
+
               </select>
+
+              <small className="helperText">
+                Followers visibility is not supported
+                by the current backend yet.
+              </small>
 
             </div>
 
           </div>
 
-          {/* Hashtags */}
+          {/* ==========================
+              HASHTAGS
+          ========================== */}
 
           <div className="formGroup">
 
-            <label>Hashtags</label>
+            <label>
+              Hashtags
+            </label>
 
             <input
               className="hashInput"
               type="text"
               placeholder="#technology #react #career"
               value={hashtags}
-              onChange={(e) => setHashtags(e.target.value)}
+              onChange={(e) =>
+                setHashtags(e.target.value)
+              }
             />
 
             <small className="helperText">
-              Add relevant hashtags to increase your post reach.
+              Add relevant hashtags to increase
+              your post reach.
             </small>
 
           </div>
 
-          {/* Upload */}
+          {/* ==========================
+              IMAGE UPLOAD
+          ========================== */}
 
           <div className="formGroup">
 
-            <label>Upload Image</label>
+            <label>
+              Upload Image
+            </label>
 
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => {
-                if (e.target.files?.length) {
-                  setImage(e.target.files[0]);
-                }
-              }}
+              onChange={handleImageChange}
             />
 
             <small className="helperText">
               JPG, PNG or WEBP • Max size 5 MB
             </small>
 
-            {image && (
+            {imagePreview && (
               <div className="previewImage">
+
                 <img
-                  src={URL.createObjectURL(image)}
-                  alt="Preview"
+                  src={imagePreview}
+                  alt="Selected preview"
                 />
+
               </div>
             )}
 
           </div>
 
-          {/* Buttons */}
+          {/* ==========================
+              BUTTONS
+          ========================== */}
 
           <div className="buttonGroup">
 
             <button
               className="draftBtn"
               onClick={handleDraft}
+              disabled={publishing}
             >
               💾 Save Draft
             </button>
@@ -246,6 +487,7 @@ export default function CreatePostPage() {
             <button
               className="previewBtn"
               onClick={handlePreview}
+              disabled={publishing}
             >
               👀 Preview
             </button>
@@ -253,13 +495,17 @@ export default function CreatePostPage() {
             <button
               className="publishBtn"
               onClick={handlePublish}
+              disabled={publishing}
             >
-              🚀 Publish Post
+              {publishing
+                ? "⏳ Publishing..."
+                : "🚀 Publish Post"}
             </button>
 
             <button
               className="clearBtn"
               onClick={handleClear}
+              disabled={publishing}
             >
               🗑 Clear Form
             </button>
@@ -269,13 +515,16 @@ export default function CreatePostPage() {
         </div>
 
       </main>
-            {/* ==========================
+
+      {/* ==========================
           LIVE PREVIEW PANEL
       ========================== */}
 
       <aside className="previewPanel">
 
-        <h2>Live Preview</h2>
+        <h2>
+          Live Preview
+        </h2>
 
         <div className="previewCard">
 
@@ -288,12 +537,20 @@ export default function CreatePostPage() {
 
             <div>
 
-              <h3>Your Profile</h3>
+              <h3>
+                Your Profile
+              </h3>
 
-              <span>{audience}</span>
+              <span>
+                {audience}
+              </span>
 
             </div>
 
+          </div>
+
+          <div className="previewCategory">
+            {category}
           </div>
 
           <h2>
@@ -311,21 +568,27 @@ export default function CreatePostPage() {
             </div>
           )}
 
-          {image && (
+          {imagePreview && (
             <img
               className="postPreviewImage"
-              src={URL.createObjectURL(image)}
-              alt="Preview"
+              src={imagePreview}
+              alt="Post preview"
             />
           )}
 
           <div className="previewFooter">
 
-            <span>❤️ 0 Likes</span>
+            <span>
+              ❤️ 0 Likes
+            </span>
 
-            <span>💬 0 Comments</span>
+            <span>
+              💬 0 Comments
+            </span>
 
-            <span>↗ Share</span>
+            <span>
+              ↗ Share
+            </span>
 
           </div>
 
