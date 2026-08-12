@@ -1007,9 +1007,12 @@ export default function HomeFeed() {
 
           <div className="headerIcons">
 
-            <span>
-              🔔
-            </span>
+            <span
+  onClick={() => navigate("/notifications")}
+  className="notificationBell"
+>
+  🔔
+</span>
 
             <span
               onClick={() =>
