@@ -1,8 +1,8 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyProfile } from "../services/profile";
 import api from "../services/api";
+import { getUnreadNotificationCount } from "../services/notificationApi";
 
 import "./HomeFeed.css";
 
@@ -69,6 +69,23 @@ interface Story {
 }
 
 // ==========================================================
+// NOTIFICATION TYPE
+// ==========================================================
+
+interface NotificationAlert {
+  id: number;
+  message: string;
+  notification_type?: string;
+  is_read: boolean;
+  created_at?: string;
+  sender?: {
+    id?: number;
+    username?: string;
+    avatar?: string;
+  };
+}
+
+// ==========================================================
 // COMPONENT
 // ==========================================================
 
@@ -117,12 +134,39 @@ export default function HomeFeed() {
       [key: number]: boolean;
     }>({});
 
+  const [stories, setStories] =
+    useState<Story[]>([]);
+
   // ========================================================
-  // STORIES
-  // Only stories with real images are displayed.
+  // NOTIFICATION STATES
   // ========================================================
 
-  const [stories, setStories] = useState<Story[]>([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] =
+    useState(0);
+
+  const [notificationAlert, setNotificationAlert] =
+    useState<NotificationAlert | null>(null);
+
+  /*
+   * This keeps track of the notification that has already
+   * been shown during the current login/session.
+   *
+   * IMPORTANT:
+   * It is NOT stored in localStorage.
+   *
+   * Therefore, when user logs out and logs in again,
+   * the state starts from null and an existing unread
+   * notification can be shown again.
+   */
+  const [lastNotificationId, setLastNotificationId] =
+    useState<number | null>(null);
+
+  /*
+   * Prevents multiple notification API calls from running
+   * at exactly the same time.
+   */
+  const notificationCheckingRef =
+    useRef(false);
 
   // ========================================================
   // MEDIA URL HELPER
@@ -158,25 +202,29 @@ export default function HomeFeed() {
 
       setProfile(loadedProfile);
 
-      // Only add/update current user's story
       if (loadedProfile.avatar) {
         const myStory: Story = {
           id: 1,
+
           name:
             loadedProfile.username ||
             user.username ||
             "You",
+
           image: getMediaUrl(
             loadedProfile.avatar
           ),
+
           text:
             "This is my story on ConnectSphere!",
         };
 
         setStories((prev) => {
-          const withoutMyStory = prev.filter(
-            (story) => story.id !== 1
-          );
+          const withoutMyStory =
+            prev.filter(
+              (story) =>
+                story.id !== 1
+            );
 
           return [
             myStory,
@@ -200,9 +248,10 @@ export default function HomeFeed() {
     try {
       setFetchingPosts(true);
 
-      const response = await api.get(
-        "/posts/feed/"
-      );
+      const response =
+        await api.get(
+          "/posts/feed/"
+        );
 
       setPosts(response.data);
     } catch (error) {
@@ -216,13 +265,260 @@ export default function HomeFeed() {
   };
 
   // ========================================================
+  // CHECK NOTIFICATIONS
+  // ========================================================
+
+  const checkNotifications = async (
+    showExistingUnread = false
+  ) => {
+    /*
+     * Prevent duplicate simultaneous requests.
+     */
+    if (
+      notificationCheckingRef.current
+    ) {
+      return;
+    }
+
+    notificationCheckingRef.current =
+      true;
+
+    try {
+      // ----------------------------------------------------
+      // GET UNREAD COUNT
+      // ----------------------------------------------------
+
+      const data =
+        await getUnreadNotificationCount();
+
+      const count =
+        data?.unread_count || 0;
+
+      setUnreadNotificationCount(
+        count
+      );
+
+      // ----------------------------------------------------
+      // NO UNREAD NOTIFICATIONS
+      // ----------------------------------------------------
+
+      if (count === 0) {
+        return;
+      }
+
+      // ----------------------------------------------------
+      // GET NOTIFICATIONS
+      // ----------------------------------------------------
+
+      const response =
+        await api.get(
+          "/notifications/"
+        );
+
+      const notifications =
+        response.data?.results ||
+        response.data ||
+        [];
+
+      if (
+        !Array.isArray(
+          notifications
+        ) ||
+        notifications.length === 0
+      ) {
+        return;
+      }
+
+      // ----------------------------------------------------
+      // FIND LATEST UNREAD NOTIFICATION
+      // ----------------------------------------------------
+
+      const unreadNotifications =
+        notifications.filter(
+          (
+            notification: NotificationAlert
+          ) =>
+            !notification.is_read
+        );
+
+      if (
+        unreadNotifications.length ===
+        0
+      ) {
+        return;
+      }
+
+      /*
+       * Sort newest notification first.
+       *
+       * This also protects us if backend does not return
+       * notifications in perfect order.
+       */
+      const sortedUnread =
+        [...unreadNotifications].sort(
+          (
+            a: NotificationAlert,
+            b: NotificationAlert
+          ) => {
+            if (
+              a.created_at &&
+              b.created_at
+            ) {
+              return (
+                new Date(
+                  b.created_at
+                ).getTime() -
+                new Date(
+                  a.created_at
+                ).getTime()
+              );
+            }
+
+            return b.id - a.id;
+          }
+        );
+
+      const latestUnread =
+        sortedUnread[0];
+
+      if (!latestUnread) {
+        return;
+      }
+
+      // ====================================================
+      // IMPORTANT FIX
+      // ====================================================
+
+      /*
+       * FIRST LOGIN / PAGE LOAD
+       *
+       * Previously your code was doing:
+       *
+       * if (lastNotificationId === null) {
+       *    setLastNotificationId(latestUnread.id);
+       *    return;
+       * }
+       *
+       * That prevented the popup.
+       *
+       * Now:
+       *
+       * - If unread notification exists
+       * - and this is a fresh login/page load
+       * - show it immediately.
+       */
+      if (
+        lastNotificationId ===
+        null
+      ) {
+        setLastNotificationId(
+          latestUnread.id
+        );
+
+        setNotificationAlert(
+          latestUnread
+        );
+
+        /*
+         * Automatically hide after 6 seconds.
+         */
+        setTimeout(() => {
+          setNotificationAlert(
+            null
+          );
+        }, 6000);
+
+        return;
+      }
+
+      // ====================================================
+      // NEW NOTIFICATION DURING SESSION
+      // ====================================================
+
+      if (
+        latestUnread.id !==
+        lastNotificationId
+      ) {
+        setLastNotificationId(
+          latestUnread.id
+        );
+
+        setNotificationAlert(
+          latestUnread
+        );
+
+        setTimeout(() => {
+          setNotificationAlert(
+            null
+          );
+        }, 6000);
+      }
+    } catch (error) {
+      console.log(
+        "Notification check error:",
+        error
+      );
+    } finally {
+      notificationCheckingRef.current =
+        false;
+    }
+  };
+
+  // ========================================================
   // INITIAL LOAD
   // ========================================================
 
   useEffect(() => {
     fetchPosts();
     loadProfile();
+
+    /*
+     * IMPORTANT:
+     *
+     * true means:
+     * "If an unread notification already exists when
+     *  the user logs in, show the popup immediately."
+     */
+    checkNotifications(true);
   }, []);
+
+  // ========================================================
+  // NOTIFICATION POLLING
+  // ========================================================
+
+  useEffect(() => {
+    /*
+     * Check every 5 seconds instead of 10 seconds.
+     *
+     * This means if User A likes/comments on User B's post,
+     * User B can see the alert quickly.
+     */
+    const notificationInterval =
+      setInterval(() => {
+        checkNotifications(false);
+      }, 5000);
+
+    return () => {
+      clearInterval(
+        notificationInterval
+      );
+    };
+  }, [lastNotificationId]);
+
+  // ========================================================
+  // OPEN NOTIFICATIONS
+  // ========================================================
+
+  const handleOpenNotifications =
+    () => {
+      setNotificationAlert(
+        null
+      );
+
+      navigate(
+        "/notifications"
+      );
+    };
 
   // ========================================================
   // OPEN ADD STORY MODAL
@@ -256,21 +552,26 @@ export default function HomeFeed() {
       alert(
         "Please add an image or write something for your story."
       );
+
       return;
     }
 
-    const imageUrl = storyImage
-      ? URL.createObjectURL(storyImage)
-      : profile?.avatar
-      ? getMediaUrl(profile.avatar)
-      : "";
+    const imageUrl =
+      storyImage
+        ? URL.createObjectURL(
+            storyImage
+          )
+        : profile?.avatar
+        ? getMediaUrl(
+            profile.avatar
+          )
+        : "";
 
-    // If there is no image at all, don't create
-    // a story that will appear as a blank DP.
     if (!imageUrl) {
       alert(
         "Please choose a story image."
       );
+
       return;
     }
 
@@ -303,7 +604,6 @@ export default function HomeFeed() {
     setStoryText("");
     setShowAddStory(false);
 
-    // Automatically open newly-created story
     setActiveStory(newStory);
   };
 
@@ -322,7 +622,9 @@ export default function HomeFeed() {
         {
           content:
             postText.trim(),
-          visibility: "PUBLIC",
+
+          visibility:
+            "PUBLIC",
         }
       );
 
@@ -352,25 +654,30 @@ export default function HomeFeed() {
           `/posts/${postId}/like/`
         );
 
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => {
-          if (
-            post.id !== postId
-          ) {
-            return post;
-          }
+      setPosts(
+        (prevPosts) =>
+          prevPosts.map(
+            (post) => {
+              if (
+                post.id !==
+                postId
+              ) {
+                return post;
+              }
 
-          return {
-            ...post,
+              return {
+                ...post,
 
-            is_liked:
-              response.data.liked,
+                is_liked:
+                  response.data
+                    .liked,
 
-            likes_count:
-              response.data
-                .likes_count,
-          };
-        })
+                likes_count:
+                  response.data
+                    .likes_count,
+              };
+            }
+          )
       );
     } catch (error) {
       console.log(
@@ -402,32 +709,38 @@ export default function HomeFeed() {
           }
         );
 
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => {
-          if (
-            post.id !== postId
-          ) {
-            return post;
-          }
+      setPosts(
+        (prevPosts) =>
+          prevPosts.map(
+            (post) => {
+              if (
+                post.id !==
+                postId
+              ) {
+                return post;
+              }
 
-          return {
-            ...post,
+              return {
+                ...post,
 
-            comments: [
-              ...(post.comments || []),
-              response.data,
-            ],
+                comments: [
+                  ...(post.comments ||
+                    []),
+                  response.data,
+                ],
 
-            comments_count:
-              post.comments_count +
-              1,
-          };
-        })
+                comments_count:
+                  post.comments_count +
+                  1,
+              };
+            }
+          )
       );
 
       setCommentText(
         (prev) => ({
           ...prev,
+
           [postId]: "",
         })
       );
@@ -453,34 +766,36 @@ export default function HomeFeed() {
           `/posts/comments/${commentId}/delete/`
         );
 
-        setPosts((prevPosts) =>
-          prevPosts.map(
-            (post) => {
-              if (
-                post.id !== postId
-              ) {
-                return post;
+        setPosts(
+          (prevPosts) =>
+            prevPosts.map(
+              (post) => {
+                if (
+                  post.id !==
+                  postId
+                ) {
+                  return post;
+                }
+
+                return {
+                  ...post,
+
+                  comments:
+                    post.comments.filter(
+                      (comment) =>
+                        comment.id !==
+                        commentId
+                    ),
+
+                  comments_count:
+                    Math.max(
+                      0,
+                      post.comments_count -
+                        1
+                    ),
+                };
               }
-
-              return {
-                ...post,
-
-                comments:
-                  post.comments.filter(
-                    (comment) =>
-                      comment.id !==
-                      commentId
-                  ),
-
-                comments_count:
-                  Math.max(
-                    0,
-                    post.comments_count -
-                      1
-                  ),
-              };
-            }
-          )
+            )
         );
       } catch (error) {
         console.log(
@@ -503,43 +818,49 @@ export default function HomeFeed() {
   ) => {
     return text
       .split(/(\s+)/)
-      .map((word, index) => {
-        if (
-          word.startsWith("#")
-        ) {
-          return (
-            <span
-              key={index}
-              style={{
-                color: "#2563eb",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              {word}
-            </span>
-          );
-        }
+      .map(
+        (word, index) => {
+          if (
+            word.startsWith("#")
+          ) {
+            return (
+              <span
+                key={index}
+                style={{
+                  color:
+                    "#2563eb",
+                  fontWeight: 600,
+                  cursor:
+                    "pointer",
+                }}
+              >
+                {word}
+              </span>
+            );
+          }
 
-        if (
-          word.startsWith("@")
-        ) {
-          return (
-            <span
-              key={index}
-              style={{
-                color: "#0ea5e9",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              {word}
-            </span>
-          );
-        }
+          if (
+            word.startsWith("@")
+          ) {
+            return (
+              <span
+                key={index}
+                style={{
+                  color:
+                    "#0ea5e9",
+                  fontWeight: 600,
+                  cursor:
+                    "pointer",
+                }}
+              >
+                {word}
+              </span>
+            );
+          }
 
-        return word;
-      });
+          return word;
+        }
+      );
   };
 
   // ========================================================
@@ -588,7 +909,8 @@ export default function HomeFeed() {
         );
 
       if (
-        newContent === null
+        newContent ===
+        null
       ) {
         return;
       }
@@ -599,6 +921,7 @@ export default function HomeFeed() {
         alert(
           "Post cannot be empty."
         );
+
         return;
       }
 
@@ -628,7 +951,8 @@ export default function HomeFeed() {
           (prevPosts) =>
             prevPosts.map(
               (item) =>
-                item.id === post.id
+                item.id ===
+                post.id
                   ? {
                       ...item,
                       ...response.data,
@@ -717,7 +1041,8 @@ export default function HomeFeed() {
           (prevPosts) =>
             prevPosts.map(
               (item) =>
-                item.id === post.id
+                item.id ===
+                post.id
                   ? {
                       ...item,
                       is_pinned:
@@ -761,7 +1086,8 @@ export default function HomeFeed() {
           (prevPosts) =>
             prevPosts.map(
               (post) =>
-                post.id === postId
+                post.id ===
+                postId
                   ? {
                       ...post,
                       is_pinned:
@@ -805,7 +1131,8 @@ export default function HomeFeed() {
           (prevPosts) =>
             prevPosts.map(
               (post) =>
-                post.id === postId
+                post.id ===
+                postId
                   ? {
                       ...post,
                       is_archived:
@@ -849,7 +1176,8 @@ export default function HomeFeed() {
           (prevPosts) =>
             prevPosts.map(
               (post) =>
-                post.id === postId
+                post.id ===
+                postId
                   ? {
                       ...post,
                       is_archived:
@@ -891,6 +1219,14 @@ export default function HomeFeed() {
       "user"
     );
 
+    /*
+     * We intentionally do NOT store notification ID
+     * in localStorage.
+     *
+     * Therefore after a new login, if unread notification
+     * still exists, HomeFeed will show its popup.
+     */
+
     alert(
       "✅ Logout Successfully!"
     );
@@ -906,6 +1242,49 @@ export default function HomeFeed() {
 
   return (
     <div className="homePage">
+
+      {/* ====================================================
+          NOTIFICATION POPUP
+      ==================================================== */}
+
+      {notificationAlert && (
+        <div
+          className="notificationPopup"
+          onClick={
+            handleOpenNotifications
+          }
+        >
+          <div className="notificationPopupIcon">
+            🔔
+          </div>
+
+          <div className="notificationPopupContent">
+            <strong>
+              New Notification
+            </strong>
+
+            <p>
+              {notificationAlert.sender?.username
+                ? `${notificationAlert.sender.username} `
+                : ""}
+              {notificationAlert.message}
+            </p>
+          </div>
+
+          <button
+            className="notificationPopupClose"
+            onClick={(e) => {
+              e.stopPropagation();
+
+              setNotificationAlert(
+                null
+              );
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* ====================================================
           SIDEBAR
@@ -1007,12 +1386,66 @@ export default function HomeFeed() {
 
           <div className="headerIcons">
 
+            {/* NOTIFICATION BELL */}
+
             <span
-  onClick={() => navigate("/notifications")}
-  className="notificationBell"
->
-  🔔
-</span>
+              onClick={
+                handleOpenNotifications
+              }
+              className="notificationBell"
+              style={{
+                position:
+                  "relative",
+                cursor:
+                  "pointer",
+              }}
+            >
+              🔔
+
+              {unreadNotificationCount >
+                0 && (
+                <span
+                  className="notificationBadge"
+                  style={{
+                    position:
+                      "absolute",
+                    top: "-8px",
+                    right: "-10px",
+                    minWidth:
+                      "18px",
+                    height:
+                      "18px",
+                    padding:
+                      "0 5px",
+                    borderRadius:
+                      "999px",
+                    background:
+                      "#ef4444",
+                    color:
+                      "#ffffff",
+                    fontSize:
+                      "11px",
+                    fontWeight:
+                      700,
+                    display:
+                      "flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    border:
+                      "2px solid white",
+                  }}
+                >
+                  {unreadNotificationCount >
+                  99
+                    ? "99+"
+                    : unreadNotificationCount}
+                </span>
+              )}
+            </span>
+
+            {/* MESSAGES */}
 
             <span
               onClick={() =>
@@ -1023,6 +1456,8 @@ export default function HomeFeed() {
             >
               ✉️
             </span>
+
+            {/* PROFILE */}
 
             <img
               src={
@@ -1070,8 +1505,6 @@ export default function HomeFeed() {
 
         <div className="storiesSection">
 
-          {/* ADD STORY */}
-
           <div
             className="story addStory"
             onClick={
@@ -1093,8 +1526,6 @@ export default function HomeFeed() {
 
           </div>
 
-          {/* ONLY REAL IMAGE STORIES */}
-
           {stories
             .filter(
               (story) =>
@@ -1102,47 +1533,49 @@ export default function HomeFeed() {
                   story.image
                 )
             )
-            .map((story) => (
+            .map(
+              (story) => (
 
-              <div
-                className="story"
-                key={
-                  story.id
-                }
-                onClick={() =>
-                  handleOpenStory(
-                    story
-                  )
-                }
-              >
+                <div
+                  className="story"
+                  key={
+                    story.id
+                  }
+                  onClick={() =>
+                    handleOpenStory(
+                      story
+                    )
+                  }
+                >
 
-                <div className="storyImageWrapper">
+                  <div className="storyImageWrapper">
 
-                  <img
-                    src={
-                      story.image
-                    }
-                    alt={
+                    <img
+                      src={
+                        story.image
+                      }
+                      alt={
+                        story.name
+                      }
+                    />
+
+                  </div>
+
+                  <span
+                    className="storyName"
+                    title={
                       story.name
                     }
-                  />
+                  >
+                    {
+                      story.name
+                    }
+                  </span>
 
                 </div>
 
-                <span
-                  className="storyName"
-                  title={
-                    story.name
-                  }
-                >
-                  {
-                    story.name
-                  }
-                </span>
-
-              </div>
-
-            ))}
+              )
+            )}
 
         </div>
 
@@ -1151,18 +1584,6 @@ export default function HomeFeed() {
         ================================================== */}
 
         <div className="quickPost">
-
-          {/* <img
-            src={
-              profile?.avatar
-                ? getMediaUrl(
-                    profile.avatar
-                  )
-                : defaultProfile
-            }
-            className="quickPostAvatar"
-            alt="Profile"
-          /> */}
 
           <input
             type="text"
@@ -1185,12 +1606,14 @@ export default function HomeFeed() {
             }}
           />
 
-       <button
-  className="postBtn"
-  onClick={handlePost}
->
-  Post
-</button>
+          <button
+            className="postBtn"
+            onClick={
+              handlePost
+            }
+          >
+            Post
+          </button>
 
         </div>
 
@@ -1268,8 +1691,6 @@ export default function HomeFeed() {
                     )}
 
                   </div>
-
-                  {/* OWNER MENU */}
 
                   {post.is_owner && (
 
@@ -1547,9 +1968,7 @@ export default function HomeFeed() {
 
                 </div>
 
-                {/* ==================================================
-                    COMMENTS
-                ================================================== */}
+                {/* COMMENTS */}
 
                 {openComments[
                   post.id
@@ -1688,8 +2107,6 @@ export default function HomeFeed() {
 
       <aside className="rightSidebar">
 
-        {/* PROFILE */}
-
         <div className="profileCard">
 
           <img
@@ -1704,12 +2121,12 @@ export default function HomeFeed() {
             alt="Profile"
           />
 
-          <h3>
+          <h4>
             {
               user.username ||
               "User"
             }
-          </h3>
+          </h4>
 
           <p>
             {
@@ -1729,8 +2146,6 @@ export default function HomeFeed() {
           </button>
 
         </div>
-
-        {/* TRENDING */}
 
         <div className="rightCard">
 
@@ -1763,8 +2178,6 @@ export default function HomeFeed() {
           </ul>
 
         </div>
-
-        {/* SUGGESTED PEOPLE */}
 
         <div className="rightCard">
 
@@ -1835,8 +2248,6 @@ export default function HomeFeed() {
             }
           >
 
-            {/* CLOSE */}
-
             <button
               className="storyCloseBtn"
               onClick={() =>
@@ -1847,8 +2258,6 @@ export default function HomeFeed() {
             >
               ✕
             </button>
-
-            {/* STORY HEADER */}
 
             <div className="storyViewerHeader">
 
@@ -1876,8 +2285,6 @@ export default function HomeFeed() {
               </div>
 
             </div>
-
-            {/* STORY CONTENT */}
 
             <div className="storyViewerContent">
 
@@ -1929,8 +2336,6 @@ export default function HomeFeed() {
             }
           >
 
-            {/* HEADER */}
-
             <div className="addStoryHeader">
 
               <h2>
@@ -1950,8 +2355,6 @@ export default function HomeFeed() {
 
             </div>
 
-            {/* STORY TEXT */}
-
             <textarea
               className="storyTextInput"
               placeholder="Write something for your story..."
@@ -1964,8 +2367,6 @@ export default function HomeFeed() {
                 )
               }
             />
-
-            {/* STORY IMAGE */}
 
             <label className="storyUpload">
 
@@ -1995,8 +2396,6 @@ export default function HomeFeed() {
 
             </label>
 
-            {/* IMAGE PREVIEW */}
-
             {storyImage && (
 
               <div className="storyUploadPreview">
@@ -2011,8 +2410,6 @@ export default function HomeFeed() {
               </div>
 
             )}
-
-            {/* ACTIONS */}
 
             <div className="storyModalActions">
 

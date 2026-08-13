@@ -221,12 +221,14 @@ const Notifications = () => {
 
       {/* Back */}
 
-      <button
-        className="backNotificationsBtn"
-        onClick={() => navigate("/")}
-      >
-        ← Back to Home
-      </button>
+      {/* BACK TO HOME FEED */}
+
+<button
+  className="backNotificationsBtn"
+  onClick={() => navigate("/home")}
+>
+  ← Back to Home
+</button>
 
     </div>
   );
