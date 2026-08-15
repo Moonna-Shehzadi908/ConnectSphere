@@ -7,9 +7,6 @@ import { getUnreadNotificationCount } from "../services/notificationApi";
 import "./HomeFeed.css";
 
 import defaultProfile from "../assets/profile icone.webp";
-import sarah from "../assets/sarah.jpg";
-import marcus from "../assets/monus.jpg";
-import elena from "../assets/elens.webp";
 
 // ==========================================================
 // TYPES
@@ -57,6 +54,14 @@ interface Post {
 interface Profile {
   username?: string;
   email?: string;
+  avatar?: string | null;
+}
+interface SuggestedPerson {
+  id: number;
+  username: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
   avatar?: string | null;
 }
 
@@ -111,6 +116,8 @@ export default function HomeFeed() {
 
   const [activeStory, setActiveStory] =
     useState<Story | null>(null);
+    const [suggestedPeople, setSuggestedPeople] =
+  useState<SuggestedPerson[]>([]);
 
   const [showAddStory, setShowAddStory] =
     useState(false);
@@ -239,7 +246,31 @@ export default function HomeFeed() {
       );
     }
   };
+// ========================================================
+// LOAD FRIEND SUGGESTIONS
+// ========================================================
 
+const loadSuggestedPeople = async () => {
+  try {
+    const response = await api.get(
+      "/followers/friend-suggestions/"
+    );
+
+    const suggestions =
+      response.data?.suggestions ||
+      response.data ||
+      [];
+
+    if (Array.isArray(suggestions)) {
+      setSuggestedPeople(suggestions);
+    }
+  } catch (error) {
+    console.log(
+      "Load suggested people error:",
+      error
+    );
+  }
+};
   // ========================================================
   // FETCH POSTS
   // ========================================================
@@ -468,19 +499,13 @@ export default function HomeFeed() {
   // INITIAL LOAD
   // ========================================================
 
-  useEffect(() => {
-    fetchPosts();
-    loadProfile();
+ useEffect(() => {
+  fetchPosts();
+  loadProfile();
+  loadSuggestedPeople();
 
-    /*
-     * IMPORTANT:
-     *
-     * true means:
-     * "If an unread notification already exists when
-     *  the user logs in, show the popup immediately."
-     */
-    checkNotifications(true);
-  }, []);
+  checkNotifications();
+}, []);
 
   // ========================================================
   // NOTIFICATION POLLING
@@ -2181,50 +2206,53 @@ export default function HomeFeed() {
 
         <div className="rightCard">
 
-          <h3>
-            Suggested People
-          </h3>
+  <h3>
+    Suggested People
+  </h3>
 
-          <div className="suggestItem">
+  {suggestedPeople.length === 0 ? (
 
-            <img
-              src={sarah}
-              alt="Sarah"
-            />
+    <p className="noSuggestions">
+      No suggestions available.
+    </p>
 
-            <span>
-              Sarah
-            </span>
+  ) : (
 
-          </div>
+    suggestedPeople.map((person) => {
 
-          <div className="suggestItem">
+      const avatar = person.avatar
+  ? getMediaUrl(person.avatar)
+  : defaultProfile;
 
-            <img
-              src={marcus}
-              alt="Marcus"
-            />
+      return (
 
-            <span>
-              Marcus
-            </span>
+        <div
+          className="suggestItem"
+          key={person.id}
+        >
 
-          </div>
+          <img
+            src={avatar}
+            alt={person.username}
+            onError={(e) => {
+              e.currentTarget.src =
+                defaultProfile;
+            }}
+          />
 
-          <div className="suggestItem">
-
-            <img
-              src={elena}
-              alt="Elena"
-            />
-
-            <span>
-              Elena
-            </span>
-
-          </div>
+          <span>
+            {person.username}
+          </span>
 
         </div>
+
+      );
+
+    })
+
+  )}
+
+</div>
 
       </aside>
 

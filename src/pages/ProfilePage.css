@@ -139,7 +139,10 @@
     color: #d7c7c7;
     font-size: 16px;
 }
-
+.header-heading{
+    margin-top: 100px;
+    padding-top: 100px;
+}
 
 /* ==========================================================
    FOLLOWER / FOLLOWING STATS

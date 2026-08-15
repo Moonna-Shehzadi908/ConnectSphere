@@ -674,7 +674,7 @@ export default function ProfilePage() {
 
         </div>
 
-        <h2>
+        <h2 className="header-heading">
           {profile?.username}
         </h2>
 
