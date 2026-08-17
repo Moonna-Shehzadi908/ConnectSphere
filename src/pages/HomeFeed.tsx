@@ -1243,6 +1243,7 @@ const loadSuggestedPeople = async () => {
     localStorage.removeItem(
       "user"
     );
+    
 
     /*
      * We intentionally do NOT store notification ID
@@ -1371,6 +1372,12 @@ const loadSuggestedPeople = async () => {
           >
             ⚙ System
           </li>
+          <button
+  className="landingBtn"
+  onClick={() => navigate("/")}
+>
+  ← Landing Page
+</button>
 
         </ul>
 
