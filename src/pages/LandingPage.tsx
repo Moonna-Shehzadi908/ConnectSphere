@@ -215,12 +215,23 @@ export default function LandingPage() {
             >
               About
             </button>
+            
 
           </nav>
 
 
           {/* HEADER ICONS */}
           <div className="icons">
+              {/* SEARCH */}
+
+            <button
+    className="iconBtn"
+    onClick={() => requireLogin("/search")}
+    title="Search"
+    aria-label="Search"
+  >
+    🔍
+  </button>
 
             {/* NOTIFICATIONS */}
             <button

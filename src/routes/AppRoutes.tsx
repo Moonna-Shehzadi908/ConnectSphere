@@ -12,6 +12,7 @@ import ModerationPage from "../pages/ModerationPage";
 import CreatePostPage from "../pages/CreatePostPage";
 import ProfilePage from "../pages/ProfilePage";
 import Notifications from "../pages/Notifications";
+import SearchPage from "../pages/SearchPage";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -25,6 +26,7 @@ export default function AppRoutes() {
       <Route path="/monetization" element={<MonetizationPage />} />
       <Route path="/moderation" element={<ModerationPage />} />
       <Route path="/create-post" element={<CreatePostPage />} />
+      <Route path="/search" element={<SearchPage />} />
       <Route
   path="/notifications"
   element={<Notifications />}

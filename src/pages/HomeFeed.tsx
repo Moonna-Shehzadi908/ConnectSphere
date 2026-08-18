@@ -1411,10 +1411,22 @@ const loadSuggestedPeople = async () => {
 
         <div className="feedHeader">
 
-          <input
-            type="text"
-            placeholder="Search ConnectSphere..."
-          />
+     <input
+  type="text"
+  placeholder="Search ConnectSphere..."
+  onFocus={() => navigate("/search")}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      const query = e.currentTarget.value.trim();
+
+      if (query) {
+        navigate(`/search?q=${encodeURIComponent(query)}`);
+      } else {
+        navigate("/search");
+      }
+    }
+  }}
+/>
 
           <div className="headerIcons">
 
