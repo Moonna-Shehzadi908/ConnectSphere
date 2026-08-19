@@ -1196,14 +1196,6 @@ export default function MessagesPage() {
             📊 Analytics
           </li>
 
-          <li
-            onClick={() =>
-              (window.location.href =
-                "/monetization")
-            }
-          >
-            💰 Monetization
-          </li>
 
           <li
             onClick={() =>
@@ -1214,14 +1206,7 @@ export default function MessagesPage() {
             🛡️ Moderation
           </li>
 
-          <li
-            onClick={() =>
-              (window.location.href =
-                "/system")
-            }
-          >
-            ⚙️ System
-          </li>
+      
           
         </ul>
 

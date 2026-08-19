@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./LandingPage.css";
 
 import heroImage from "../assets/landingpage.webp";
-import feature1 from "../assets/company.webp";
+import feature1 from "../assets/emplyee.webp";
 import feature2 from "../assets/mbl.webp";
 
 import { useNavigate } from "react-router-dom";

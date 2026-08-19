@@ -1183,3 +1183,717 @@ button:focus-visible {
   background: #c4b5fd;
   color: #312e81;
 }
+/* =========================================================
+   CONNECTSPHERE - FINAL PROFESSIONAL MOTION SYSTEM
+   Smooth / Modern / Ease-In-Out
+   Visual Only - No Functionality Changes
+========================================================= */
+
+
+/* =========================================================
+   GLOBAL MOTION
+========================================================= */
+
+* {
+  transition-timing-function: ease-in-out;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+/* =========================================================
+   PAGE LOAD
+========================================================= */
+
+.page {
+  animation: pageReveal 0.8s ease-in-out both;
+}
+
+@keyframes pageReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   TOP HEADER
+========================================================= */
+
+.topHeader {
+  animation: headerReveal 0.7s ease-in-out both;
+}
+
+@keyframes headerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   MENU BUTTON
+========================================================= */
+
+.menu {
+  transition:
+    transform 0.35s ease-in-out,
+    background 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out;
+}
+
+.menu:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow:
+    0 8px 20px rgba(79, 70, 229, 0.25);
+}
+
+.menu:active {
+  transform: scale(0.94);
+}
+
+
+/* =========================================================
+   MENU LINES
+========================================================= */
+
+.menu span {
+  transition:
+    transform 0.35s ease-in-out,
+    opacity 0.35s ease-in-out;
+}
+
+
+/* =========================================================
+   SIGN IN
+========================================================= */
+
+.signBtn {
+  transition:
+    transform 0.35s ease-in-out,
+    background 0.35s ease-in-out,
+    color 0.35s ease-in-out,
+    border-color 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out;
+}
+
+.signBtn:hover {
+  transform: translateY(-3px);
+}
+
+.signBtn:active {
+  transform: scale(0.95);
+}
+
+
+/* =========================================================
+   DROPDOWN MENU
+========================================================= */
+
+.landingMenu {
+  animation: landingMenuReveal 0.35s ease-in-out both;
+  transform-origin: top left;
+}
+
+@keyframes landingMenuReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.landingMenu button {
+  transition:
+    transform 0.3s ease-in-out,
+    background 0.3s ease-in-out,
+    color 0.3s ease-in-out;
+}
+
+.landingMenu button:hover {
+  transform: translateX(5px);
+}
+
+.landingMenu button:active {
+  transform: translateX(3px) scale(0.98);
+}
+
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.card {
+  animation: cardReveal 0.9s ease-in-out 0.08s both;
+
+  transition:
+    transform 0.45s ease-in-out,
+    box-shadow 0.45s ease-in-out;
+}
+
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+
+.navBar {
+  animation: navReveal 0.7s ease-in-out 0.18s both;
+
+  transition:
+    transform 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out;
+}
+
+.navBar:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 12px 30px rgba(79, 70, 229, 0.10);
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logo {
+  transition:
+    transform 0.35s ease-in-out,
+    color 0.35s ease-in-out,
+    letter-spacing 0.35s ease-in-out;
+}
+
+.logo:hover {
+  transform: translateX(4px);
+  letter-spacing: 0.2px;
+}
+
+
+/* =========================================================
+   NAV BUTTONS
+========================================================= */
+
+.navBtn {
+  transition:
+    transform 0.3s ease-in-out,
+    background 0.3s ease-in-out,
+    color 0.3s ease-in-out;
+}
+
+.navBtn:hover {
+  transform: translateY(-2px);
+}
+
+.navBtn:active {
+  transform: scale(0.96);
+}
+
+
+/* =========================================================
+   HEADER ICONS
+========================================================= */
+
+.iconBtn {
+  transition:
+    transform 0.35s ease-in-out,
+    background 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out;
+}
+
+.iconBtn:hover {
+  transform: translateY(-2px) scale(1.08);
+
+  box-shadow:
+    0 5px 15px rgba(79, 70, 229, 0.12);
+}
+
+.iconBtn:active {
+  transform: scale(0.9);
+}
+
+
+/* =========================================================
+   HERO CONTENT
+========================================================= */
+
+.heroText {
+  animation: heroReveal 0.9s ease-in-out 0.25s both;
+}
+
+@keyframes heroReveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   HERO BADGE
+========================================================= */
+
+.heroBadge {
+  animation: badgeReveal 0.6s ease-in-out 0.45s both;
+
+  transition:
+    transform 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out;
+}
+
+.heroBadge:hover {
+  transform: translateY(-3px) scale(1.03);
+
+  box-shadow:
+    0 8px 20px rgba(99, 102, 241, 0.15);
+}
+
+@keyframes badgeReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   HERO HEADING
+========================================================= */
+
+.heroText h2 {
+  animation: headingReveal 0.9s ease-in-out 0.35s both;
+}
+
+@keyframes headingReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   HERO DESCRIPTION
+========================================================= */
+
+.heroText p {
+  animation: paragraphReveal 0.8s ease-in-out 0.5s both;
+}
+
+@keyframes paragraphReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   HERO BUTTONS
+========================================================= */
+
+.buttons {
+  animation: buttonsReveal 0.8s ease-in-out 0.6s both;
+}
+
+@keyframes buttonsReveal {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.primaryBtn,
+.secondaryBtn {
+  transition:
+    transform 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out,
+    background 0.35s ease-in-out,
+    color 0.35s ease-in-out,
+    border-color 0.35s ease-in-out;
+}
+
+.primaryBtn:hover,
+.secondaryBtn:hover {
+  transform: translateY(-4px);
+}
+
+.primaryBtn:active,
+.secondaryBtn:active {
+  transform: translateY(0) scale(0.96);
+}
+
+
+/* =========================================================
+   HERO IMAGE
+========================================================= */
+
+.imageBox {
+  animation: imageReveal 1s ease-in-out 0.55s both;
+}
+
+@keyframes imageReveal {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.imageBox img {
+  transition:
+    transform 0.7s ease-in-out,
+    filter 0.7s ease-in-out,
+    box-shadow 0.5s ease-in-out;
+}
+
+.imageBox:hover img {
+  transform: scale(1.018);
+  filter: brightness(1.02);
+
+  box-shadow:
+    0 25px 55px rgba(15, 23, 42, 0.18);
+}
+
+
+/* =========================================================
+   FLOATING CARD
+========================================================= */
+
+.floatingCard {
+  animation: floatingCardReveal 0.8s ease-in-out 0.9s both;
+
+  transition:
+    transform 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out;
+}
+
+.floatingCard:hover {
+  transform: translateY(-5px);
+
+  box-shadow:
+    0 15px 35px rgba(15, 23, 42, 0.18);
+}
+
+@keyframes floatingCardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   LIVE ICON
+========================================================= */
+
+.liveIcon {
+  transition:
+    transform 0.35s ease-in-out,
+    background 0.35s ease-in-out;
+}
+
+.floatingCard:hover .liveIcon {
+  transform: rotate(-5deg) scale(1.08);
+}
+
+
+/* =========================================================
+   ABOUT SECTION
+========================================================= */
+
+.bottom {
+  animation: bottomReveal 0.8s ease-in-out 0.25s both;
+}
+
+@keyframes bottomReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sectionLine {
+  animation: lineExpand 0.7s ease-in-out 0.45s both;
+  transform-origin: center;
+}
+
+@keyframes lineExpand {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+
+/* =========================================================
+   FEATURES SECTION
+========================================================= */
+
+.featuresSection {
+  animation: featuresReveal 0.9s ease-in-out 0.2s both;
+}
+
+@keyframes featuresReveal {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   FEATURE CARDS
+========================================================= */
+
+.featureCard {
+  transition:
+    transform 0.45s ease-in-out,
+    box-shadow 0.45s ease-in-out,
+    background 0.45s ease-in-out;
+}
+
+.featureCard:hover {
+  transform: translateY(-7px) scale(1.015);
+
+  box-shadow:
+    0 18px 40px rgba(31, 41, 55, 0.14);
+}
+
+.featureCard:active {
+  transform: translateY(-2px) scale(0.99);
+}
+
+
+/* =========================================================
+   FEATURE ICON
+========================================================= */
+
+.featureIcon {
+  transition:
+    transform 0.4s ease-in-out,
+    color 0.35s ease-in-out;
+}
+
+.featureCard:hover .featureIcon {
+  transform: translateY(-4px) scale(1.12);
+}
+
+
+/* =========================================================
+   FEATURE IMAGE
+========================================================= */
+
+.featureImage {
+  transition:
+    transform 0.45s ease-in-out,
+    box-shadow 0.45s ease-in-out;
+}
+
+.featureImage:hover {
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 18px 40px rgba(31, 41, 55, 0.14);
+}
+
+.featureImage img {
+  transition:
+    transform 0.7s ease-in-out,
+    filter 0.7s ease-in-out;
+}
+
+.featureImage:hover img {
+  transform: scale(1.07);
+  filter: brightness(1.04);
+}
+
+
+/* =========================================================
+   PURPLE FEATURE
+========================================================= */
+
+.featureCard.purple {
+  transition:
+    transform 0.45s ease-in-out,
+    box-shadow 0.45s ease-in-out,
+    filter 0.45s ease-in-out;
+}
+
+.featureCard.purple:hover {
+  transform: translateY(-7px) scale(1.015);
+
+  filter: brightness(1.04);
+
+  box-shadow:
+    0 20px 45px rgba(79, 70, 229, 0.22);
+}
+
+
+/* =========================================================
+   CTA SECTION
+========================================================= */
+
+.ctaSection {
+  animation: ctaReveal 0.9s ease-in-out 0.25s both;
+
+  transition:
+    transform 0.45s ease-in-out,
+    box-shadow 0.45s ease-in-out;
+}
+
+.ctaSection:hover {
+  transform: translateY(-5px);
+
+  box-shadow:
+    0 22px 45px rgba(79, 70, 229, 0.18);
+}
+
+@keyframes ctaReveal {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   CTA BUTTON
+========================================================= */
+
+.ctaButton {
+  transition:
+    transform 0.35s ease-in-out,
+    box-shadow 0.35s ease-in-out;
+}
+
+.ctaButton:hover {
+  transform: translateY(-4px) scale(1.02);
+
+  box-shadow:
+    0 12px 28px rgba(79, 70, 229, 0.25);
+}
+
+.ctaButton:active {
+  transform: scale(0.96);
+}
+
+
+/* =========================================================
+   GENERAL BUTTON PRESS EFFECT
+========================================================= */
+
+button:active {
+  transition-duration: 0.12s;
+
+  transform: scale(0.96);
+}
+
+
+/* =========================================================
+   SMOOTH IMAGE MOVEMENT
+========================================================= */
+
+img {
+  backface-visibility: hidden;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

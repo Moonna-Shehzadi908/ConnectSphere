@@ -221,13 +221,7 @@ export default function CreatePostPage() {
             📊 Analytics
           </li>
 
-          <li
-            onClick={() =>
-              navigate("/monetization")
-            }
-          >
-            💰 Monetization
-          </li>
+        
 
           <li
             onClick={() =>
@@ -237,13 +231,7 @@ export default function CreatePostPage() {
             🛡 Moderation
           </li>
 
-          <li
-            onClick={() =>
-              navigate("/system")
-            }
-          >
-            ⚙ System
-          </li>
+         
 
         </ul>
 

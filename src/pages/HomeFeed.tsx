@@ -1349,13 +1349,7 @@ const loadSuggestedPeople = async () => {
             📊 Analytics
           </li>
 
-          <li
-            onClick={() =>
-              navigate("/monetization")
-            }
-          >
-            💰 Monetization
-          </li>
+        
 
           <li
             onClick={() =>
@@ -1365,13 +1359,7 @@ const loadSuggestedPeople = async () => {
             🛡 Moderation
           </li>
 
-          <li
-            onClick={() =>
-              navigate("/system")
-            }
-          >
-            ⚙ System
-          </li>
+        
           <button
   className="landingBtn"
   onClick={() => navigate("/")}

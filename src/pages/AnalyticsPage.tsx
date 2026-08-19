@@ -13,9 +13,7 @@ export default function AnalyticsPage() {
           <li onClick={() => navigate("/home")}>📄 Feed</li>
           <li onClick={() => navigate("/messages")}>💬 Messaging</li>
           <li onClick={() => navigate("/analytics")}>📊 Analytics</li>
-          <li onClick={() => navigate("/monetization")}>💰 Monetization</li>
           <li className="active">🛡 Moderation</li>
-          <li onClick={() => navigate("/system")}>⚙ System</li>
         </ul>
 
         <button
