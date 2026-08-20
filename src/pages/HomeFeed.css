@@ -26,7 +26,7 @@ body {
 .homeFeed,
 .feedPage {
   min-height: 100vh;
-  background: #f4f6fb;
+  background:#000000;
 }
 
 /* =========================================================
@@ -2729,4 +2729,200 @@ button:active {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+/* =========================================================
+   FINAL FIX - CENTER FEED TOP EMPTY SPACE
+   Keeps existing design and animations unchanged
+========================================================= */
+
+/* Main page must start from the top */
+html,
+body,
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100% !important;
+  width: 100% !important;
+  background: #f4f6fb !important;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Home feed must not vertically center its children */
+.homeFeed,
+.feedPage {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background:#000000;
+
+  /* Important if parent/layout was centering content */
+  align-items: flex-start !important;
+  align-content: flex-start !important;
+  justify-content: flex-start !important;
+  place-items: start !important;
+}
+
+/* =========================================================
+   CENTER FEED - FORCE TO TOP
+========================================================= */
+
+.feedArea {
+  position: relative !important;
+
+  /* Prevent any vertical pushing */
+  top: 0 !important;
+  bottom: auto !important;
+  transform: none !important;
+
+  /* Important for flex/grid parent layouts */
+  align-self: flex-start !important;
+  justify-self: start !important;
+
+  /* Desktop center */
+  width: 560px !important;
+  max-width: 560px !important;
+
+  /*
+     Center the feed horizontally between both sidebars.
+     Sidebar and rightSidebar remain fixed.
+  */
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+
+  padding-top: 24px !important;
+  padding-bottom: 60px !important;
+
+  min-height: 100vh !important;
+  background:#000000!important;
+}
+
+/* First item inside feed should not create extra top space */
+.feedArea > :first-child {
+  margin-top: 0 !important;
+}
+
+/* =========================================================
+   LEFT SIDEBAR - KEEP EXACT POSITION
+========================================================= */
+
+.sidebar {
+  position: fixed !important;
+  top: 24px !important;
+  left: 24px !important;
+}
+
+/* =========================================================
+   RIGHT SIDEBAR - KEEP EXACT POSITION
+========================================================= */
+
+.rightSidebar {
+  position: fixed !important;
+  top: 24px !important;
+  right: 24px !important;
+}
+
+/* Profile card must stay inside right sidebar */
+.profileCard {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Right cards must stay inside right sidebar */
+.rightCard {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* =========================================================
+   DESKTOP
+========================================================= */
+
+@media (min-width: 1101px) {
+
+  .feedArea {
+    width: 560px !important;
+    max-width: 560px !important;
+
+    margin-top: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+
+    padding-top: 24px !important;
+  }
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1100px) and (min-width: 901px) {
+
+  .feedArea {
+    width: calc(100% - 430px) !important;
+    max-width: calc(100% - 430px) !important;
+
+    margin-top: 0 !important;
+    margin-left: 215px !important;
+    margin-right: 215px !important;
+
+    padding-top: 24px !important;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .feedArea {
+    width: calc(100% - 30px) !important;
+    max-width: none !important;
+
+    margin: 0 15px !important;
+    padding-top: 0 !important;
+
+    align-self: flex-start !important;
+  }
+
+  .sidebar {
+    position: static !important;
+
+    width: calc(100% - 30px) !important;
+    height: auto !important;
+
+    margin: 15px !important;
+  }
+
+  .rightSidebar {
+    position: static !important;
+
+    width: calc(100% - 30px) !important;
+    max-height: none !important;
+
+    margin: 0 15px 30px !important;
+
+    overflow: visible !important;
+  }
+}
+
+/* =========================================================
+   EXTRA SAFETY - REMOVE UNEXPECTED TOP SPACING
+========================================================= */
+
+.feedArea,
+.feedArea:first-child {
+  inset-block-start: 0 !important;
+}
+
+.feedArea::before {
+  display: none !important;
 }

@@ -2113,3 +2113,117 @@
 .messagesPage .messageContent {
   user-select: text;
 }
+/* =========================================================
+   CONNECTSPHERE - MESSAGES PAGE SIDEBAR FIX
+   Prevent global sidebar from overlapping Messages layout
+   ========================================================= */
+
+.messagesPage {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 600px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* LEFT APPLICATION SIDEBAR */
+.messagesPage > .sidebar {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+
+  width: 250px !important;
+  min-width: 250px !important;
+  max-width: 250px !important;
+
+  height: 100vh !important;
+  flex: 0 0 250px !important;
+
+  margin: 0 !important;
+  transform: none !important;
+
+  z-index: 20 !important;
+}
+
+/* MESSAGES / CHAT SIDEBAR */
+.messagesPage > .messagesListPanel {
+  position: relative !important;
+
+  width: 340px !important;
+  min-width: 340px !important;
+  max-width: 340px !important;
+
+  height: 100vh !important;
+  flex: 0 0 340px !important;
+
+  margin: 0 !important;
+  transform: none !important;
+
+  z-index: 5 !important;
+}
+
+/* MAIN CHAT MUST STAY ON RIGHT */
+.messagesPage > .chatPanel {
+  position: relative !important;
+
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+
+  width: auto !important;
+  height: 100vh !important;
+
+  margin: 0 !important;
+  transform: none !important;
+
+  z-index: 1 !important;
+}
+
+/* IMPORTANT:
+   Don't allow any global sidebar rule to affect children */
+.messagesPage .sidebar {
+  position: relative !important;
+  float: none !important;
+  transform: none !important;
+}
+
+/* Prevent global main/container positioning */
+.messagesPage .messagesListPanel,
+.messagesPage .chatPanel {
+  float: none !important;
+}
+
+/* =========================================================
+   DESKTOP STRUCTURE
+
+   [ APP SIDEBAR ] [ MESSAGES LIST ] [ CHAT ]
+   ========================================================= */
+
+@media (min-width: 769px) {
+
+  .messagesPage {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+  }
+
+  .messagesPage > .sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .messagesPage > .messagesListPanel {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .messagesPage > .chatPanel {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+}

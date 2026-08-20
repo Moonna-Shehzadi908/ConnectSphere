@@ -13,7 +13,7 @@ export default function AnalyticsPage() {
           <li onClick={() => navigate("/home")}>📄 Feed</li>
           <li onClick={() => navigate("/messages")}>💬 Messaging</li>
           <li onClick={() => navigate("/analytics")}>📊 Analytics</li>
-          <li className="active">🛡 Moderation</li>
+          <li onClick={() => navigate("/Moderation")}>📊 Moderation</li>
         </ul>
 
         <button
