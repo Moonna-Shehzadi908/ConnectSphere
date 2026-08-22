@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { getMyProfile } from "../services/profile";
 import api from "../services/api";
 import { getUnreadNotificationCount } from "../services/notificationApi";
@@ -22,6 +23,7 @@ interface Comment {
   username: string;
   avatar: string | null;
   content: string;
+  is_edited?: boolean;
   created_at: string;
   is_owner: boolean;
 }
@@ -34,6 +36,9 @@ interface Post {
   content: string;
   visibility: string;
 
+  hashtags?: string[];
+  mentions?: string[];
+
   created_at: string;
   updated_at: string;
 
@@ -44,11 +49,21 @@ interface Post {
 
   comments_count: number;
 
+  // IMPORTANT:
+  // Backend PostSerializer already returns this.
   is_owner: boolean;
+
   is_pinned: boolean;
   is_archived: boolean;
 
   comments: Comment[];
+}
+interface UserWarning {
+  id: number;
+  reason: string;
+  moderator: string | null;
+  reported_post_id: number | null;
+  created_at: string;
 }
 
 interface Profile {
@@ -56,6 +71,7 @@ interface Profile {
   email?: string;
   avatar?: string | null;
 }
+
 interface SuggestedPerson {
   id: number;
   username: string;
@@ -83,6 +99,7 @@ interface NotificationAlert {
   notification_type?: string;
   is_read: boolean;
   created_at?: string;
+
   sender?: {
     id?: number;
     username?: string;
@@ -111,13 +128,13 @@ export default function HomeFeed() {
   const [, setLoading] = useState(false);
   const [fetchingPosts, setFetchingPosts] = useState(true);
 
-  const [openMenu, setOpenMenu] =
-    useState<number | null>(null);
+  const [openMenu, setOpenMenu] = useState<number | null>(null);
 
   const [activeStory, setActiveStory] =
     useState<Story | null>(null);
-    const [suggestedPeople, setSuggestedPeople] =
-  useState<SuggestedPerson[]>([]);
+
+  const [suggestedPeople, setSuggestedPeople] =
+    useState<SuggestedPerson[]>([]);
 
   const [showAddStory, setShowAddStory] =
     useState(false);
@@ -127,22 +144,39 @@ export default function HomeFeed() {
 
   const [storyText, setStoryText] =
     useState("");
+    const [warnings, setWarnings] =
+  useState<UserWarning[]>([]);
 
   const [profile, setProfile] =
     useState<Profile | null>(null);
 
   const [commentText, setCommentText] =
-    useState<{
-      [key: number]: string;
-    }>({});
+    useState<{ [key: number]: string }>({});
 
   const [openComments, setOpenComments] =
-    useState<{
-      [key: number]: boolean;
-    }>({});
+    useState<{ [key: number]: boolean }>({});
 
   const [stories, setStories] =
     useState<Story[]>([]);
+
+  // ========================================================
+  // REPORT STATES
+  // ========================================================
+
+  const [showReportModal, setShowReportModal] =
+    useState(false);
+
+  const [reportPost, setReportPost] =
+    useState<Post | null>(null);
+
+  const [reportReason, setReportReason] =
+    useState("");
+
+  const [reportDescription, setReportDescription] =
+    useState("");
+
+  const [submittingReport, setSubmittingReport] =
+    useState(false);
 
   // ========================================================
   // NOTIFICATION STATES
@@ -154,24 +188,9 @@ export default function HomeFeed() {
   const [notificationAlert, setNotificationAlert] =
     useState<NotificationAlert | null>(null);
 
-  /*
-   * This keeps track of the notification that has already
-   * been shown during the current login/session.
-   *
-   * IMPORTANT:
-   * It is NOT stored in localStorage.
-   *
-   * Therefore, when user logs out and logs in again,
-   * the state starts from null and an existing unread
-   * notification can be shown again.
-   */
   const [lastNotificationId, setLastNotificationId] =
     useState<number | null>(null);
 
-  /*
-   * Prevents multiple notification API calls from running
-   * at exactly the same time.
-   */
   const notificationCheckingRef =
     useRef(false);
 
@@ -229,8 +248,7 @@ export default function HomeFeed() {
         setStories((prev) => {
           const withoutMyStory =
             prev.filter(
-              (story) =>
-                story.id !== 1
+              (story) => story.id !== 1
             );
 
           return [
@@ -246,31 +264,35 @@ export default function HomeFeed() {
       );
     }
   };
-// ========================================================
-// LOAD FRIEND SUGGESTIONS
-// ========================================================
 
-const loadSuggestedPeople = async () => {
-  try {
-    const response = await api.get(
-      "/followers/friend-suggestions/"
-    );
+  // ========================================================
+  // LOAD FRIEND SUGGESTIONS
+  // ========================================================
 
-    const suggestions =
-      response.data?.suggestions ||
-      response.data ||
-      [];
+  const loadSuggestedPeople = async () => {
+    try {
+      const response = await api.get(
+        "/followers/friend-suggestions/"
+      );
 
-    if (Array.isArray(suggestions)) {
-      setSuggestedPeople(suggestions);
+      const suggestions =
+        response.data?.suggestions ||
+        response.data ||
+        [];
+
+      if (Array.isArray(suggestions)) {
+        setSuggestedPeople(
+          suggestions
+        );
+      }
+    } catch (error) {
+      console.log(
+        "Load suggested people error:",
+        error
+      );
     }
-  } catch (error) {
-    console.log(
-      "Load suggested people error:",
-      error
-    );
-  }
-};
+  };
+
   // ========================================================
   // FETCH POSTS
   // ========================================================
@@ -284,7 +306,17 @@ const loadSuggestedPeople = async () => {
           "/posts/feed/"
         );
 
-      setPosts(response.data);
+      const fetchedPosts =
+        Array.isArray(response.data)
+          ? response.data
+          : response.data?.results || [];
+
+      console.log(
+        "POSTS FROM BACKEND:",
+        fetchedPosts
+      );
+
+      setPosts(fetchedPosts);
     } catch (error) {
       console.log(
         "Fetch posts error:",
@@ -299,12 +331,7 @@ const loadSuggestedPeople = async () => {
   // CHECK NOTIFICATIONS
   // ========================================================
 
-  const checkNotifications = async (
-    showExistingUnread = false
-  ) => {
-    /*
-     * Prevent duplicate simultaneous requests.
-     */
+  const checkNotifications = async () => {
     if (
       notificationCheckingRef.current
     ) {
@@ -315,10 +342,6 @@ const loadSuggestedPeople = async () => {
       true;
 
     try {
-      // ----------------------------------------------------
-      // GET UNREAD COUNT
-      // ----------------------------------------------------
-
       const data =
         await getUnreadNotificationCount();
 
@@ -329,17 +352,9 @@ const loadSuggestedPeople = async () => {
         count
       );
 
-      // ----------------------------------------------------
-      // NO UNREAD NOTIFICATIONS
-      // ----------------------------------------------------
-
       if (count === 0) {
         return;
       }
-
-      // ----------------------------------------------------
-      // GET NOTIFICATIONS
-      // ----------------------------------------------------
 
       const response =
         await api.get(
@@ -360,10 +375,6 @@ const loadSuggestedPeople = async () => {
         return;
       }
 
-      // ----------------------------------------------------
-      // FIND LATEST UNREAD NOTIFICATION
-      // ----------------------------------------------------
-
       const unreadNotifications =
         notifications.filter(
           (
@@ -379,12 +390,6 @@ const loadSuggestedPeople = async () => {
         return;
       }
 
-      /*
-       * Sort newest notification first.
-       *
-       * This also protects us if backend does not return
-       * notifications in perfect order.
-       */
       const sortedUnread =
         [...unreadNotifications].sort(
           (
@@ -416,59 +421,10 @@ const loadSuggestedPeople = async () => {
         return;
       }
 
-      // ====================================================
-      // IMPORTANT FIX
-      // ====================================================
-
-      /*
-       * FIRST LOGIN / PAGE LOAD
-       *
-       * Previously your code was doing:
-       *
-       * if (lastNotificationId === null) {
-       *    setLastNotificationId(latestUnread.id);
-       *    return;
-       * }
-       *
-       * That prevented the popup.
-       *
-       * Now:
-       *
-       * - If unread notification exists
-       * - and this is a fresh login/page load
-       * - show it immediately.
-       */
       if (
-        lastNotificationId ===
-        null
-      ) {
-        setLastNotificationId(
-          latestUnread.id
-        );
-
-        setNotificationAlert(
-          latestUnread
-        );
-
-        /*
-         * Automatically hide after 6 seconds.
-         */
-        setTimeout(() => {
-          setNotificationAlert(
-            null
-          );
-        }, 6000);
-
-        return;
-      }
-
-      // ====================================================
-      // NEW NOTIFICATION DURING SESSION
-      // ====================================================
-
-      if (
+        lastNotificationId === null ||
         latestUnread.id !==
-        lastNotificationId
+          lastNotificationId
       ) {
         setLastNotificationId(
           latestUnread.id
@@ -479,9 +435,7 @@ const loadSuggestedPeople = async () => {
         );
 
         setTimeout(() => {
-          setNotificationAlert(
-            null
-          );
+          setNotificationAlert(null);
         }, 6000);
       }
     } catch (error) {
@@ -499,28 +453,23 @@ const loadSuggestedPeople = async () => {
   // INITIAL LOAD
   // ========================================================
 
- useEffect(() => {
-  fetchPosts();
-  loadProfile();
-  loadSuggestedPeople();
+  useEffect(() => {
+    fetchPosts();
+    loadProfile();
+    loadSuggestedPeople();
+    checkNotifications();
+      loadWarnings();
 
-  checkNotifications();
-}, []);
+  }, []);
 
   // ========================================================
   // NOTIFICATION POLLING
   // ========================================================
 
   useEffect(() => {
-    /*
-     * Check every 5 seconds instead of 10 seconds.
-     *
-     * This means if User A likes/comments on User B's post,
-     * User B can see the alert quickly.
-     */
     const notificationInterval =
       setInterval(() => {
-        checkNotifications(false);
+        checkNotifications();
       }, 5000);
 
     return () => {
@@ -534,19 +483,14 @@ const loadSuggestedPeople = async () => {
   // OPEN NOTIFICATIONS
   // ========================================================
 
-  const handleOpenNotifications =
-    () => {
-      setNotificationAlert(
-        null
-      );
+  const handleOpenNotifications = () => {
+    setNotificationAlert(null);
 
-      navigate(
-        "/notifications"
-      );
-    };
+    navigate("/notifications");
+  };
 
   // ========================================================
-  // OPEN ADD STORY MODAL
+  // OPEN ADD STORY
   // ========================================================
 
   const handleOpenAddStory = () => {
@@ -765,7 +709,6 @@ const loadSuggestedPeople = async () => {
       setCommentText(
         (prev) => ({
           ...prev,
-
           [postId]: "",
         })
       );
@@ -889,7 +832,7 @@ const loadSuggestedPeople = async () => {
   };
 
   // ========================================================
-  // SPLIT TITLE / DESCRIPTION / HASHTAGS
+  // SPLIT POST
   // ========================================================
 
   const getPostParts = (
@@ -924,7 +867,56 @@ const loadSuggestedPeople = async () => {
   // ========================================================
   // EDIT POST
   // ========================================================
+// ========================================================
+// LOAD MY WARNINGS
+// ========================================================
 
+// ========================================================
+// LOAD MY WARNINGS
+// ========================================================
+
+const loadWarnings = async () => {
+  try {
+    const token = localStorage.getItem("access");
+
+    console.log("WARNING API TOKEN EXISTS:", !!token);
+
+    if (!token) {
+      console.log("No access token found.");
+      return;
+    }
+
+    const response = await api.get(
+      "/moderation/my-warnings/"
+    );
+
+    console.log(
+      "MY WARNINGS RESPONSE:",
+      response.data
+    );
+
+    const data = Array.isArray(response.data)
+      ? response.data
+      : response.data?.results || [];
+
+    setWarnings(data);
+  } catch (error: any) {
+    console.log(
+      "LOAD WARNINGS ERROR:",
+      error
+    );
+
+    console.log(
+      "STATUS:",
+      error?.response?.status
+    );
+
+    console.log(
+      "DATA:",
+      error?.response?.data
+    );
+  }
+};
   const handleEditPost =
     async (post: Post) => {
       const newContent =
@@ -954,6 +946,7 @@ const loadSuggestedPeople = async () => {
         newContent.trim() ===
         post.content.trim()
       ) {
+        setOpenMenu(null);
         return;
       }
 
@@ -1046,6 +1039,105 @@ const loadSuggestedPeople = async () => {
         );
       } finally {
         setLoading(false);
+      }
+    };
+
+  // ========================================================
+  // REPORT POST - OPEN
+  // ========================================================
+
+  const handleOpenReport = (
+    post: Post
+  ) => {
+    setOpenMenu(null);
+
+    setReportPost(post);
+    setReportReason("");
+    setReportDescription("");
+
+    setShowReportModal(true);
+  };
+
+  // ========================================================
+  // REPORT POST - CLOSE
+  // ========================================================
+
+  const handleCloseReport = () => {
+    if (submittingReport) {
+      return;
+    }
+
+    setShowReportModal(false);
+    setReportPost(null);
+    setReportReason("");
+    setReportDescription("");
+  };
+
+  // ========================================================
+  // REPORT POST - SUBMIT
+  // ========================================================
+
+  const handleSubmitReport =
+    async () => {
+      if (!reportPost) {
+        alert(
+          "No post selected."
+        );
+
+        return;
+      }
+
+      if (!reportReason) {
+        alert(
+          "Please select a reason."
+        );
+
+        return;
+      }
+
+      try {
+        setSubmittingReport(true);
+
+        await api.post(
+          "/moderation/reports/create/",
+          {
+            reported_post:
+              reportPost.id,
+
+            reason:
+              reportReason,
+
+            description:
+              reportDescription.trim(),
+          }
+        );
+
+        alert(
+          "✅ Report submitted successfully."
+        );
+
+        setShowReportModal(false);
+        setReportPost(null);
+        setReportReason("");
+        setReportDescription("");
+      } catch (error: any) {
+        console.log(
+          "Report post error:",
+          error
+        );
+
+        const message =
+          error?.response?.data
+            ?.detail ||
+          error?.response?.data
+            ?.message ||
+          error?.response?.data
+            ?.error ||
+          "Failed to submit report.";
+
+        alert(message);
+      } finally {
+        setSubmittingReport(false);
       }
     };
 
@@ -1231,31 +1323,17 @@ const loadSuggestedPeople = async () => {
   // LOGOUT
   // ========================================================
 
+ 
+    // ========================================================
+  // LOGOUT
+  // ========================================================
+
   const handleLogout = () => {
-    localStorage.removeItem(
-      "access"
-    );
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("user");
 
-    localStorage.removeItem(
-      "refresh"
-    );
-
-    localStorage.removeItem(
-      "user"
-    );
-    
-
-    /*
-     * We intentionally do NOT store notification ID
-     * in localStorage.
-     *
-     * Therefore after a new login, if unread notification
-     * still exists, HomeFeed will show its popup.
-     */
-
-    alert(
-      "✅ Logout Successfully!"
-    );
+    alert("✅ Logout Successfully!");
 
     navigate("/signin", {
       replace: true,
@@ -1276,9 +1354,7 @@ const loadSuggestedPeople = async () => {
       {notificationAlert && (
         <div
           className="notificationPopup"
-          onClick={
-            handleOpenNotifications
-          }
+          onClick={handleOpenNotifications}
         >
           <div className="notificationPopupIcon">
             🔔
@@ -1293,6 +1369,7 @@ const loadSuggestedPeople = async () => {
               {notificationAlert.sender?.username
                 ? `${notificationAlert.sender.username} `
                 : ""}
+
               {notificationAlert.message}
             </p>
           </div>
@@ -1302,9 +1379,7 @@ const loadSuggestedPeople = async () => {
             onClick={(e) => {
               e.stopPropagation();
 
-              setNotificationAlert(
-                null
-              );
+              setNotificationAlert(null);
             }}
           >
             ✕
@@ -1313,7 +1388,7 @@ const loadSuggestedPeople = async () => {
       )}
 
       {/* ====================================================
-          SIDEBAR
+          LEFT SIDEBAR
       ==================================================== */}
 
       <aside className="sidebar">
@@ -1326,56 +1401,41 @@ const loadSuggestedPeople = async () => {
 
           <li
             className="active"
-            onClick={() =>
-              navigate("/home")
-            }
+            onClick={() => navigate("/home")}
           >
             📄 Feed
           </li>
 
           <li
-            onClick={() =>
-              navigate("/messages")
-            }
+            onClick={() => navigate("/messages")}
           >
             💬 Messaging
           </li>
 
           <li
-            onClick={() =>
-              navigate("/analytics")
-            }
+            onClick={() => navigate("/analytics")}
           >
             📊 Analytics
           </li>
 
-        
-
           <li
-            onClick={() =>
-              navigate("/moderation")
-            }
+            onClick={() => navigate("/moderation")}
           >
             🛡 Moderation
           </li>
 
-        
           <button
-  className="landingBtn"
-  onClick={() => navigate("/")}
->
-  ← Landing Page
-</button>
+            className="landingBtn"
+            onClick={() => navigate("/")}
+          >
+            ← Landing Page
+          </button>
 
         </ul>
 
         <button
           className="createBtn"
-          onClick={() =>
-            navigate(
-              "/create-post"
-            )
-          }
+          onClick={() => navigate("/create-post")}
         >
           Create Post
         </button>
@@ -1395,82 +1455,69 @@ const loadSuggestedPeople = async () => {
 
       <main className="feedArea">
 
-        {/* HEADER */}
+        {/* ==================================================
+            HEADER
+        ================================================== */}
 
         <div className="feedHeader">
 
-     <input
-  type="text"
-  placeholder="Search ConnectSphere..."
-  onFocus={() => navigate("/search")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      const query = e.currentTarget.value.trim();
+          <input
+            type="text"
+            placeholder="Search ConnectSphere..."
+            onFocus={() => navigate("/search")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
 
-      if (query) {
-        navigate(`/search?q=${encodeURIComponent(query)}`);
-      } else {
-        navigate("/search");
-      }
-    }
-  }}
-/>
+                const query =
+                  e.currentTarget.value.trim();
+
+                if (query) {
+                  navigate(
+                    `/search?q=${encodeURIComponent(query)}`
+                  );
+                } else {
+                  navigate("/search");
+                }
+              }
+            }}
+          />
 
           <div className="headerIcons">
 
-            {/* NOTIFICATION BELL */}
+            {/* NOTIFICATION */}
 
             <span
-              onClick={
-                handleOpenNotifications
-              }
+              onClick={handleOpenNotifications}
               className="notificationBell"
               style={{
-                position:
-                  "relative",
-                cursor:
-                  "pointer",
+                position: "relative",
+                cursor: "pointer",
               }}
             >
               🔔
 
-              {unreadNotificationCount >
-                0 && (
+              {unreadNotificationCount > 0 && (
                 <span
                   className="notificationBadge"
                   style={{
-                    position:
-                      "absolute",
+                    position: "absolute",
                     top: "-8px",
                     right: "-10px",
-                    minWidth:
-                      "18px",
-                    height:
-                      "18px",
-                    padding:
-                      "0 5px",
-                    borderRadius:
-                      "999px",
-                    background:
-                      "#ef4444",
-                    color:
-                      "#ffffff",
-                    fontSize:
-                      "11px",
-                    fontWeight:
-                      700,
-                    display:
-                      "flex",
-                    alignItems:
-                      "center",
-                    justifyContent:
-                      "center",
-                    border:
-                      "2px solid white",
+                    minWidth: "18px",
+                    height: "18px",
+                    padding: "0 5px",
+                    borderRadius: "999px",
+                    background: "#ef4444",
+                    color: "#ffffff",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "2px solid white",
                   }}
                 >
-                  {unreadNotificationCount >
-                  99
+                  {unreadNotificationCount > 99
                     ? "99+"
                     : unreadNotificationCount}
                 </span>
@@ -1480,11 +1527,7 @@ const loadSuggestedPeople = async () => {
             {/* MESSAGES */}
 
             <span
-              onClick={() =>
-                navigate(
-                  "/messages"
-                )
-              }
+              onClick={() => navigate("/messages")}
             >
               ✉️
             </span>
@@ -1494,43 +1537,90 @@ const loadSuggestedPeople = async () => {
             <img
               src={
                 profile?.avatar
-                  ? getMediaUrl(
-                      profile.avatar
-                    )
+                  ? getMediaUrl(profile.avatar)
                   : defaultProfile
               }
               className="miniAvatar"
               alt="Profile"
-              onClick={() =>
-                navigate(
-                  "/profile"
-                )
-              }
+              onClick={() => navigate("/profile")}
             />
 
           </div>
 
         </div>
 
-        {/* ==================================================
-            WELCOME
-        ================================================== */}
+       {/* ==================================================
+    WELCOME
+================================================== */}
 
-        <div className="welcomeCard">
+<div className="welcomeCard">
 
-          <h2>
-            Welcome back,{" "}
-            {user.username ||
-              "User"}{" "}
-            👋
-          </h2>
+  <h2>
+    Welcome back,{" "}
+    {user.username || "User"} 👋
+  </h2>
 
-          <p>
-            {user.email}
-          </p>
+  <p>
+    {user.role === "moderator"
+      ? "🛡️ Moderator Account"
+      : user.email}
+  </p>
 
+</div>
+{/* ==================================================
+    MODERATOR WARNING
+================================================== */}
+
+{warnings.length > 0 && (
+  <div className="warningCard">
+
+    <div className="warningCardHeader">
+      <span className="warningIcon">
+        ⚠️
+      </span>
+
+      <div>
+        <h3>
+          Account Warning
+        </h3>
+
+        <p>
+          You have received a moderation warning.
+        </p>
+      </div>
+    </div>
+
+    {warnings.map((warning) => (
+      <div
+        className="warningItem"
+        key={warning.id}
+      >
+        <div>
+          <strong>
+            Reason:
+          </strong>{" "}
+          {warning.reason
+            .replaceAll("_", " ")
+            .replace(
+              /\b\w/g,
+              (char) => char.toUpperCase()
+            )}
         </div>
 
+        <small>
+          {warning.moderator
+            ? `Issued by ${warning.moderator}`
+            : "Issued by Moderator"}
+          {" • "}
+          {new Date(
+            warning.created_at
+          ).toLocaleString()}
+        </small>
+      </div>
+    ))}
+
+  </div>
+)}
         {/* ==================================================
             STORIES
         ================================================== */}
@@ -1539,75 +1629,46 @@ const loadSuggestedPeople = async () => {
 
           <div
             className="story addStory"
-            onClick={
-              handleOpenAddStory
-            }
+            onClick={handleOpenAddStory}
           >
-
             <div className="storyImageWrapper addStoryCircle">
-
               <span>
                 +
               </span>
-
             </div>
 
             <span className="storyName">
               Add Story
             </span>
-
           </div>
 
           {stories
-            .filter(
-              (story) =>
-                Boolean(
-                  story.image
-                )
-            )
-            .map(
-              (story) => (
+            .filter((story) => Boolean(story.image))
+            .map((story) => (
+              <div
+                className="story"
+                key={story.id}
+                onClick={() => handleOpenStory(story)}
+              >
 
-                <div
-                  className="story"
-                  key={
-                    story.id
-                  }
-                  onClick={() =>
-                    handleOpenStory(
-                      story
-                    )
-                  }
-                >
+                <div className="storyImageWrapper">
 
-                  <div className="storyImageWrapper">
-
-                    <img
-                      src={
-                        story.image
-                      }
-                      alt={
-                        story.name
-                      }
-                    />
-
-                  </div>
-
-                  <span
-                    className="storyName"
-                    title={
-                      story.name
-                    }
-                  >
-                    {
-                      story.name
-                    }
-                  </span>
+                  <img
+                    src={story.image}
+                    alt={story.name}
+                  />
 
                 </div>
 
-              )
-            )}
+                <span
+                  className="storyName"
+                  title={story.name}
+                >
+                  {story.name}
+                </span>
+
+              </div>
+            ))}
 
         </div>
 
@@ -1620,19 +1681,12 @@ const loadSuggestedPeople = async () => {
           <input
             type="text"
             placeholder="Share something..."
-            value={
-              postText
-            }
+            value={postText}
             onChange={(e) =>
-              setPostText(
-                e.target.value
-              )
+              setPostText(e.target.value)
             }
             onKeyDown={(e) => {
-              if (
-                e.key ===
-                "Enter"
-              ) {
+              if (e.key === "Enter") {
                 handlePost();
               }
             }}
@@ -1640,9 +1694,7 @@ const loadSuggestedPeople = async () => {
 
           <button
             className="postBtn"
-            onClick={
-              handlePost
-            }
+            onClick={handlePost}
           >
             Post
           </button>
@@ -1664,100 +1716,172 @@ const loadSuggestedPeople = async () => {
             POSTS
         ================================================== */}
 
-        {posts.map(
-          (post) => {
+        {posts.map((post) => {
 
-            const {
-              title,
-              description,
-              hashtags,
-            } =
-              getPostParts(
-                post.content
-              );
+          const {
+            title,
+            description,
+            hashtags,
+          } = getPostParts(post.content);
 
-            return (
-              <div
-                className="postCard"
-                key={
-                  post.id
-                }
-              >
+          return (
+            <div
+              className="postCard"
+              key={post.id}
+            >
 
-                {/* POST HEADER */}
+              {/* ==================================================
+                  POST HEADER
+              ================================================== */}
 
-                <div className="postHeader">
+              <div className="postHeader">
 
-                  <img
-                    src={
-                      post.avatar
-                        ? getMediaUrl(
-                            post.avatar
-                          )
-                        : defaultProfile
-                    }
-                    className="postAvatar"
-                    alt={
-                      post.username
-                    }
-                  />
+                <img
+                  src={
+                    post.avatar
+                      ? getMediaUrl(post.avatar)
+                      : defaultProfile
+                  }
+                  className="postAvatar"
+                  alt={post.username}
+                />
 
-                  <div className="postUserDetails">
+                <div className="postUserDetails">
 
-                    <h4>
-                      {
-                        post.username
+                  <h4>
+                    {post.username}
+                  </h4>
+
+                  <small>
+                    {new Date(
+                      post.created_at
+                    ).toLocaleString()}
+                  </small>
+
+                  {post.is_pinned && (
+                    <span className="pinBadge">
+                      📌 Pinned
+                    </span>
+                  )}
+
+                </div>
+                {/* ==================================================
+    WARNING FOR THIS POST
+================================================== */}
+
+{warnings.some(
+  (warning) =>
+    warning.reported_post_id === post.id
+) && (
+  <div className="postWarningCard">
+
+    <div className="postWarningHeader">
+      <span className="postWarningIcon">
+        ⚠️
+      </span>
+
+      <div>
+        <strong>
+          Moderation Warning
+        </strong>
+
+        <p>
+          This post received a moderation warning.
+        </p>
+      </div>
+    </div>
+
+    {warnings
+      .filter(
+        (warning) =>
+          warning.reported_post_id ===
+          post.id
+      )
+      .map((warning) => (
+        <div
+          className="postWarningDetails"
+          key={warning.id}
+        >
+          <p>
+            <strong>Reason:</strong>{" "}
+            {warning.reason
+              .replaceAll("_", " ")
+              .replace(
+                /\b\w/g,
+                (char) =>
+                  char.toUpperCase()
+              )}
+          </p>
+
+          <small>
+            {warning.moderator
+              ? `Issued by ${warning.moderator}`
+              : "Issued by Moderator"}
+
+            {" • "}
+
+            {new Date(
+              warning.created_at
+            ).toLocaleString()}
+          </small>
+        </div>
+      ))}
+  </div>
+)}
+
+                {/* ==================================================
+                    POST DOT MENU
+                ================================================== */}
+
+                <div className="postMenu">
+
+                  <button
+                    type="button"
+                    className="menuBtn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setOpenMenu(
+                        openMenu === post.id
+                          ? null
+                          : post.id
+                      );
+                    }}
+                  >
+                    ⋮
+                  </button>
+
+                  {openMenu === post.id && (
+                    <div
+                      className="menuDropdown"
+                      onClick={(e) =>
+                        e.stopPropagation()
                       }
-                    </h4>
+                    >
 
-                    <small>
-                      {new Date(
-                        post.created_at
-                      ).toLocaleString()}
-                    </small>
+                      {/* ==================================================
+                          OWNER OPTIONS
+                          ONLY POST OWNER CAN SEE THESE
+                      ================================================== */}
 
-                    {post.is_pinned && (
-                      <span className="pinBadge">
-                        📌 Pinned
-                      </span>
-                    )}
+                      {post.is_owner === true && (
+                        <>
 
-                  </div>
-
-                  {post.is_owner && (
-
-                    <div className="postMenu">
-
-                      <button
-                        className="menuBtn"
-                        onClick={() =>
-                          setOpenMenu(
-                            openMenu ===
-                              post.id
-                              ? null
-                              : post.id
-                          )
-                        }
-                      >
-                        ⋮
-                      </button>
-
-                      {openMenu ===
-                        post.id && (
-
-                        <div className="menuDropdown">
+                          {/* EDIT */}
 
                           <button
+                            type="button"
                             onClick={() =>
-                              handleEditPost(
-                                post
-                              )
+                              handleEditPost(post)
                             }
                           >
                             ✏ Edit Post
                           </button>
 
+                          {/* DELETE */}
+
                           <button
+                            type="button"
                             onClick={() =>
                               handleDeletePost(
                                 post.id
@@ -1767,9 +1891,11 @@ const loadSuggestedPeople = async () => {
                             🗑 Delete Post
                           </button>
 
-                          {post.is_pinned ? (
+                          {/* PIN / UNPIN */}
 
+                          {post.is_pinned ? (
                             <button
+                              type="button"
                               onClick={() =>
                                 handleUnpinPost(
                                   post.id
@@ -1778,24 +1904,22 @@ const loadSuggestedPeople = async () => {
                             >
                               📍 Unpin Post
                             </button>
-
                           ) : (
-
                             <button
+                              type="button"
                               onClick={() =>
-                                handlePinPost(
-                                  post
-                                )
+                                handlePinPost(post)
                               }
                             >
                               📌 Pin Post
                             </button>
-
                           )}
 
-                          {post.is_archived ? (
+                          {/* ARCHIVE / RESTORE */}
 
+                          {post.is_archived ? (
                             <button
+                              type="button"
                               onClick={() =>
                                 handleRestorePost(
                                   post.id
@@ -1804,10 +1928,9 @@ const loadSuggestedPeople = async () => {
                             >
                               ♻ Restore
                             </button>
-
                           ) : (
-
                             <button
+                              type="button"
                               onClick={() =>
                                 handleArchivePost(
                                   post.id
@@ -1816,320 +1939,282 @@ const loadSuggestedPeople = async () => {
                             >
                               📦 Archive
                             </button>
+                          )}
 
+                        </>
+                      )}
+
+                      {/* ==================================================
+                          REPORT
+                          EVERY USER CAN SEE REPORT
+                          DO NOT CHANGE REPORT WORKING
+                      ================================================== */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleOpenReport(post)
+                        }
+                      >
+                        🚩 Report Post
+                      </button>
+
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
+
+              {/* ==================================================
+                  POST TITLE
+              ================================================== */}
+
+              {title && (
+                <h3
+                  style={{
+                    fontSize: "19px",
+                    fontWeight: 700,
+                    color: "#111827",
+                    marginBottom: "10px",
+                  }}
+                >
+                  {title}
+                </h3>
+              )}
+
+              {/* ==================================================
+                  DESCRIPTION
+              ================================================== */}
+
+              <p className="postContent">
+
+                {description
+                  ? formatPostContent(description)
+                  : formatPostContent(
+                      title || post.content
+                    )}
+
+              </p>
+
+              {/* ==================================================
+                  HASHTAGS
+              ================================================== */}
+
+              {hashtags && (
+                <p
+                  className="postContent"
+                  style={{
+                    marginTop: "-8px",
+                  }}
+                >
+                  {formatPostContent(hashtags)}
+                </p>
+              )}
+
+              {/* ==================================================
+                  POST IMAGE
+              ================================================== */}
+
+              {post.images &&
+                post.images.length > 0 &&
+                post.images[0].image && (
+
+                  <img
+                    src={getMediaUrl(
+                      post.images[0].image
+                    )}
+                    className="postImage"
+                    alt="Post"
+                    onError={(e) => {
+
+                      console.error(
+                        "Post image failed:",
+                        getMediaUrl(
+                          post.images[0].image
+                        )
+                      );
+
+                      e.currentTarget.style.display =
+                        "none";
+                    }}
+                  />
+
+                )}
+
+              {/* ==================================================
+                  POST ACTIONS
+              ================================================== */}
+
+              <div className="postActions">
+
+                {/* LIKE */}
+
+                <button
+                  onClick={() =>
+                    handleLike(post.id)
+                  }
+                >
+                  {post.is_liked
+                    ? "❤️ Liked"
+                    : "🤍 Like"}{" "}
+                  ({post.likes_count})
+                </button>
+
+                {/* COMMENTS */}
+
+                <button
+                  onClick={() =>
+                    setOpenComments((prev) => ({
+                      ...prev,
+                      [post.id]:
+                        !prev[post.id],
+                    }))
+                  }
+                >
+                  💬 Comments (
+                  {post.comments_count})
+                </button>
+
+                {/* SHARE */}
+
+                <button
+                  onClick={() => {
+
+                    const shareUrl =
+                      `${window.location.origin}/post/${post.id}`;
+
+                    if (navigator.share) {
+
+                      navigator.share({
+                        title:
+                          title ||
+                          "ConnectSphere Post",
+
+                        text:
+                          description ||
+                          post.content,
+
+                        url: shareUrl,
+                      });
+
+                    } else {
+
+                      navigator.clipboard.writeText(
+                        shareUrl
+                      );
+
+                      alert(
+                        "Post link copied!"
+                      );
+                    }
+                  }}
+                >
+                  ↗ Share
+                </button>
+
+              </div>
+
+              {/* ==================================================
+                  COMMENTS
+              ================================================== */}
+
+              {openComments[post.id] && (
+                <div className="commentSection">
+
+                  {post.comments?.map(
+                    (comment) => (
+
+                      <div
+                        key={comment.id}
+                        className="commentItem"
+                      >
+
+                        <img
+                          className="commentAvatar"
+                          src={
+                            comment.avatar
+                              ? getMediaUrl(
+                                  comment.avatar
+                                )
+                              : defaultProfile
+                          }
+                          alt="Profile"
+                        />
+
+                        <div className="commentBody">
+
+                          <strong>
+                            {comment.username}
+                          </strong>
+
+                          <p>
+                            {comment.content}
+                          </p>
+
+                          {comment.is_owner && (
+                            <button
+                              className="deleteCommentBtn"
+                              onClick={() =>
+                                handleDeleteComment(
+                                  post.id,
+                                  comment.id
+                                )
+                              }
+                            >
+                              🗑 Delete
+                            </button>
                           )}
 
                         </div>
 
-                      )}
+                      </div>
 
-                    </div>
-
+                    )
                   )}
 
-                </div>
+                  <div className="commentInput">
 
-                {/* POST TITLE */}
-
-                {title && (
-                  <h3
-                    style={{
-                      fontSize:
-                        "19px",
-                      fontWeight:
-                        700,
-                      color:
-                        "#111827",
-                      marginBottom:
-                        "10px",
-                    }}
-                  >
-                    {
-                      title
-                    }
-                  </h3>
-                )}
-
-                {/* POST DESCRIPTION */}
-
-                <p className="postContent">
-
-                  {description
-                    ? formatPostContent(
-                        description
-                      )
-                    : formatPostContent(
-                        title ||
-                          post.content
-                      )}
-
-                </p>
-
-                {/* HASHTAGS */}
-
-                {hashtags && (
-                  <p
-                    className="postContent"
-                    style={{
-                      marginTop:
-                        "-8px",
-                    }}
-                  >
-                    {formatPostContent(
-                      hashtags
-                    )}
-                  </p>
-                )}
-
-                {/* POST IMAGE */}
-
-                {post.images &&
-                  post.images.length >
-                    0 &&
-                  post.images[0]
-                    .image && (
-
-                    <img
-                      src={getMediaUrl(
-                        post
-                          .images[0]
-                          .image
-                      )}
-                      className="postImage"
-                      alt="Post"
-                      onError={(
-                        e
-                      ) => {
-                        console.error(
-                          "Post image failed:",
-                          getMediaUrl(
-                            post
-                              .images[0]
-                              .image
-                          )
-                        );
-
-                        e.currentTarget.style.display =
-                          "none";
+                    <input
+                      type="text"
+                      placeholder="Write a comment..."
+                      value={
+                        commentText[post.id] || ""
+                      }
+                      onChange={(e) =>
+                        setCommentText((prev) => ({
+                          ...prev,
+                          [post.id]:
+                            e.target.value,
+                        }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleComment(
+                            post.id
+                          );
+                        }
                       }}
                     />
 
-                  )}
-
-                {/* ACTIONS */}
-
-                <div className="postActions">
-
-                  <button
-                    onClick={() =>
-                      handleLike(
-                        post.id
-                      )
-                    }
-                  >
-                    {post.is_liked
-                      ? "❤️ Liked"
-                      : "🤍 Like"}{" "}
-                    (
-                    {
-                      post.likes_count
-                    }
-                    )
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setOpenComments(
-                        (prev) => ({
-                          ...prev,
-                          [post.id]:
-                            !prev[
-                              post.id
-                            ],
-                        })
-                      )
-                    }
-                  >
-                    💬 Comments (
-                    {
-                      post.comments_count
-                    }
-                    )
-                  </button>
-
-                  <button
-                    onClick={() => {
-
-                      const shareUrl =
-                        `${window.location.origin}/post/${post.id}`;
-
-                      if (
-                        navigator.share
-                      ) {
-
-                        navigator.share(
-                          {
-                            title:
-                              title ||
-                              "ConnectSphere Post",
-
-                            text:
-                              description ||
-                              post.content,
-
-                            url:
-                              shareUrl,
-                          }
-                        );
-
-                      } else {
-
-                        navigator.clipboard.writeText(
-                          shareUrl
-                        );
-
-                        alert(
-                          "Post link copied!"
-                        );
+                    <button
+                      onClick={() =>
+                        handleComment(
+                          post.id
+                        )
                       }
-
-                    }}
-                  >
-                    ↗ Share
-                  </button>
-
-                </div>
-
-                {/* COMMENTS */}
-
-                {openComments[
-                  post.id
-                ] && (
-
-                  <div className="commentSection">
-
-                    {post.comments?.map(
-                      (
-                        comment
-                      ) => (
-
-                        <div
-                          key={
-                            comment.id
-                          }
-                          className="commentItem"
-                        >
-
-                          <img
-                            className="commentAvatar"
-                            src={
-                              comment.avatar
-                                ? getMediaUrl(
-                                    comment.avatar
-                                  )
-                                : defaultProfile
-                            }
-                            alt="Profile"
-                          />
-
-                          <div className="commentBody">
-
-                            <strong>
-                              {
-                                comment.username
-                              }
-                            </strong>
-
-                            <p>
-                              {
-                                comment.content
-                              }
-                            </p>
-
-                            {comment.is_owner && (
-
-                              <button
-                                className="deleteCommentBtn"
-                                onClick={() =>
-                                  handleDeleteComment(
-                                    post.id,
-                                    comment.id
-                                  )
-                                }
-                              >
-                                🗑 Delete
-                              </button>
-
-                            )}
-
-                          </div>
-
-                        </div>
-
-                      )
-                    )}
-
-                    {/* COMMENT INPUT */}
-
-                    <div className="commentInput">
-
-                      <input
-                        type="text"
-                        placeholder="Write a comment..."
-                        value={
-                          commentText[
-                            post.id
-                          ] || ""
-                        }
-                        onChange={(
-                          e
-                        ) =>
-                          setCommentText(
-                            (prev) => ({
-                              ...prev,
-                              [post.id]:
-                                e
-                                  .target
-                                  .value,
-                            })
-                          )
-                        }
-                        onKeyDown={(
-                          e
-                        ) => {
-
-                          if (
-                            e.key ===
-                            "Enter"
-                          ) {
-                            handleComment(
-                              post.id
-                            );
-                          }
-
-                        }}
-                      />
-
-                      <button
-                        onClick={() =>
-                          handleComment(
-                            post.id
-                          )
-                        }
-                      >
-                        Send
-                      </button>
-
-                    </div>
+                    >
+                      Send
+                    </button>
 
                   </div>
 
-                )}
+                </div>
+              )}
 
-              </div>
-            );
-          }
-        )}
+            </div>
+          );
+        })}
 
       </main>
 
@@ -2139,14 +2224,14 @@ const loadSuggestedPeople = async () => {
 
       <aside className="rightSidebar">
 
+        {/* PROFILE CARD */}
+
         <div className="profileCard">
 
           <img
             src={
               profile?.avatar
-                ? getMediaUrl(
-                    profile.avatar
-                  )
+                ? getMediaUrl(profile.avatar)
                 : defaultProfile
             }
             className="profileCardAvatar"
@@ -2154,30 +2239,30 @@ const loadSuggestedPeople = async () => {
           />
 
           <h4>
-            {
+            {profile?.username ||
               user.username ||
-              "User"
-            }
+              "User"}
           </h4>
 
           <p>
-            {
-              user.email
-            }
+            {profile?.email ||
+              user.email}
           </p>
 
           <button
             className="viewProfileBtn"
             onClick={() =>
-              navigate(
-                "/profile"
-              )
+              navigate("/profile")
             }
           >
             View Profile
           </button>
 
         </div>
+
+        {/* ==================================================
+            TRENDING
+        ================================================== */}
 
         <div className="rightCard">
 
@@ -2211,55 +2296,63 @@ const loadSuggestedPeople = async () => {
 
         </div>
 
+        {/* ==================================================
+            SUGGESTED PEOPLE
+        ================================================== */}
+
         <div className="rightCard">
 
-  <h3>
-    Suggested People
-  </h3>
+          <h3>
+            Suggested People
+          </h3>
 
-  {suggestedPeople.length === 0 ? (
+          {suggestedPeople.length === 0 ? (
 
-    <p className="noSuggestions">
-      No suggestions available.
-    </p>
+            <p className="noSuggestions">
+              No suggestions available.
+            </p>
 
-  ) : (
+          ) : (
 
-    suggestedPeople.map((person) => {
+            suggestedPeople.map(
+              (person) => {
 
-      const avatar = person.avatar
-  ? getMediaUrl(person.avatar)
-  : defaultProfile;
+                const avatar =
+                  person.avatar
+                    ? getMediaUrl(
+                        person.avatar
+                      )
+                    : defaultProfile;
 
-      return (
+                return (
 
-        <div
-          className="suggestItem"
-          key={person.id}
-        >
+                  <div
+                    className="suggestItem"
+                    key={person.id}
+                  >
 
-          <img
-            src={avatar}
-            alt={person.username}
-            onError={(e) => {
-              e.currentTarget.src =
-                defaultProfile;
-            }}
-          />
+                    <img
+                      src={avatar}
+                      alt={person.username}
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          defaultProfile;
+                      }}
+                    />
 
-          <span>
-            {person.username}
-          </span>
+                    <span>
+                      {person.username}
+                    </span>
+
+                  </div>
+
+                );
+              }
+            )
+
+          )}
 
         </div>
-
-      );
-
-    })
-
-  )}
-
-</div>
 
       </aside>
 
@@ -2286,9 +2379,7 @@ const loadSuggestedPeople = async () => {
             <button
               className="storyCloseBtn"
               onClick={() =>
-                setActiveStory(
-                  null
-                )
+                setActiveStory(null)
               }
             >
               ✕
@@ -2297,20 +2388,14 @@ const loadSuggestedPeople = async () => {
             <div className="storyViewerHeader">
 
               <img
-                src={
-                  activeStory.image
-                }
-                alt={
-                  activeStory.name
-                }
+                src={activeStory.image}
+                alt={activeStory.name}
               />
 
               <div>
 
                 <strong>
-                  {
-                    activeStory.name
-                  }
+                  {activeStory.name}
                 </strong>
 
                 <small>
@@ -2326,9 +2411,7 @@ const loadSuggestedPeople = async () => {
               {activeStory.storyImage && (
 
                 <img
-                  src={
-                    activeStory.storyImage
-                  }
+                  src={activeStory.storyImage}
                   alt="Story"
                   className="storyFullImage"
                 />
@@ -2336,9 +2419,7 @@ const loadSuggestedPeople = async () => {
               )}
 
               <p>
-                {
-                  activeStory.text
-                }
+                {activeStory.text}
               </p>
 
             </div>
@@ -2358,9 +2439,7 @@ const loadSuggestedPeople = async () => {
         <div
           className="addStoryOverlay"
           onClick={() =>
-            setShowAddStory(
-              false
-            )
+            setShowAddStory(false)
           }
         >
 
@@ -2380,9 +2459,7 @@ const loadSuggestedPeople = async () => {
               <button
                 className="storyCloseBtn"
                 onClick={() =>
-                  setShowAddStory(
-                    false
-                  )
+                  setShowAddStory(false)
                 }
               >
                 ✕
@@ -2393,13 +2470,9 @@ const loadSuggestedPeople = async () => {
             <textarea
               className="storyTextInput"
               placeholder="Write something for your story..."
-              value={
-                storyText
-              }
+              value={storyText}
               onChange={(e) =>
-                setStoryText(
-                  e.target.value
-                )
+                setStoryText(e.target.value)
               }
             />
 
@@ -2411,13 +2484,10 @@ const loadSuggestedPeople = async () => {
                 type="file"
                 accept="image/*"
                 hidden
-                onChange={(
-                  e
-                ) => {
+                onChange={(e) => {
 
                   if (
-                    e.target.files
-                      ?.length
+                    e.target.files?.length
                   ) {
 
                     setStoryImage(
@@ -2451,9 +2521,7 @@ const loadSuggestedPeople = async () => {
               <button
                 className="cancelStoryBtn"
                 onClick={() =>
-                  setShowAddStory(
-                    false
-                  )
+                  setShowAddStory(false)
                 }
               >
                 Cancel
@@ -2461,9 +2529,7 @@ const loadSuggestedPeople = async () => {
 
               <button
                 className="publishStoryBtn"
-                onClick={
-                  handleAddStory
-                }
+                onClick={handleAddStory}
               >
                 🚀 Add Story
               </button>
@@ -2475,6 +2541,163 @@ const loadSuggestedPeople = async () => {
         </div>
 
       )}
+
+      {/* ====================================================
+          REPORT POST MODAL
+          ⚠️ UNCHANGED
+      ==================================================== */}
+
+      {showReportModal &&
+        reportPost && (
+
+          <div
+            className="reportModalOverlay"
+            onClick={handleCloseReport}
+          >
+
+            <div
+              className="reportModal"
+              onClick={(e) =>
+                e.stopPropagation()
+              }
+            >
+
+              {/* REPORT HEADER */}
+
+              <div className="reportModalHeader">
+
+                <h2>
+                  🚩 Report Post
+                </h2>
+
+                <button
+                  type="button"
+                  className="reportCloseBtn"
+                  onClick={
+                    handleCloseReport
+                  }
+                  disabled={
+                    submittingReport
+                  }
+                >
+                  ✕
+                </button>
+
+              </div>
+
+              {/* REPORT TEXT */}
+
+              <p className="reportModalText">
+                Why are you reporting this post?
+              </p>
+
+              {/* REASON */}
+
+              <select
+                value={reportReason}
+                onChange={(e) =>
+                  setReportReason(
+                    e.target.value
+                  )
+                }
+                disabled={
+                  submittingReport
+                }
+                className="reportReasonSelect"
+              >
+
+                <option value="">
+                  Select a reason
+                </option>
+
+                <option value="spam">
+                  Spam
+                </option>
+
+                <option value="harassment">
+                  Harassment or bullying
+                </option>
+
+                <option value="hate_speech">
+                  Hate speech
+                </option>
+
+                <option value="violence">
+                  Violence or dangerous content
+                </option>
+
+                <option value="misinformation">
+                  Misinformation
+                </option>
+
+                <option value="inappropriate">
+                  Inappropriate content
+                </option>
+
+                <option value="other">
+                  Other
+                </option>
+
+              </select>
+
+              {/* DESCRIPTION */}
+
+              <textarea
+                className="reportDescriptionInput"
+                placeholder="Additional details (optional)..."
+                value={reportDescription}
+                onChange={(e) =>
+                  setReportDescription(
+                    e.target.value
+                  )
+                }
+                disabled={
+                  submittingReport
+                }
+                rows={5}
+              />
+
+              {/* ACTION BUTTONS */}
+
+              <div className="reportModalActions">
+
+                <button
+                  type="button"
+                  className="cancelReportBtn"
+                  onClick={
+                    handleCloseReport
+                  }
+                  disabled={
+                    submittingReport
+                  }
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="submitReportBtn"
+                  onClick={
+                    handleSubmitReport
+                  }
+                  disabled={
+                    submittingReport
+                  }
+                >
+
+                  {submittingReport
+                    ? "Submitting..."
+                    : "🚩 Submit Report"}
+
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
 
     </div>
   );

@@ -8,15 +8,6 @@ const API_BASE = "/api/moderation";
    TYPES
    ========================================================= */
 
-interface Report {
-  id: number;
-  reporter: string;
-  reason: string;
-  status: string;
-  created_at: string;
-  reviewed_by: string | null;
-}
-
 interface User {
   id: number;
   username: string;
@@ -34,13 +25,40 @@ interface Comment {
   author: string;
 }
 
-interface ReportDetail extends Report {
+interface Report {
+  id: number;
+  reporter: string;
+  reason: string;
+  status: string;
+  created_at: string;
+  reviewed_by: string | null;
+}
+
+interface ReportDetail {
+  id: number;
+
+  reporter: User;
+
   reported_user: User | null;
   reported_post: Post | null;
   reported_comment: Comment | null;
+
+  reason: string;
   description: string;
+  status: string;
+
+  reviewed_by: User | null;
+
   review_note: string;
+  created_at: string;
   reviewed_at: string | null;
+}
+
+interface ReportsResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Report[];
 }
 
 interface Analytics {
@@ -77,17 +95,23 @@ export default function ModerationPage() {
   const navigate = useNavigate();
 
   const [reports, setReports] = useState<Report[]>([]);
-  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [totalReports, setTotalReports] = useState(0);
+
+  const [analytics, setAnalytics] =
+    useState<Analytics | null>(null);
 
   const [selectedReport, setSelectedReport] =
     useState<ReportDetail | null>(null);
 
   const [loading, setLoading] = useState(true);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [detailLoading, setDetailLoading] =
+    useState(false);
+  const [actionLoading, setActionLoading] =
+    useState(false);
 
   const [error, setError] = useState("");
-  const [actionMessage, setActionMessage] = useState("");
+  const [actionMessage, setActionMessage] =
+    useState("");
 
   /* =========================================================
      AUTH HELPERS
@@ -107,6 +131,7 @@ export default function ModerationPage() {
 
     return {
       "Content-Type": "application/json",
+
       ...(token
         ? {
             Authorization: `Bearer ${token}`,
@@ -128,18 +153,26 @@ export default function ModerationPage() {
      HELPERS
      ========================================================= */
 
-  const getReasonLabel = (reason?: string | null) => {
+  const getReasonLabel = (
+    reason?: string | null
+  ) => {
     if (!reason) {
       return "Unknown";
     }
 
     return String(reason)
       .replaceAll("_", " ")
-      .replace(/\b\w/g, (char) => char.toUpperCase());
+      .replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+      );
   };
 
-  const getStatusClass = (status?: string | null) => {
-    const normalized = String(status || "").toLowerCase();
+  const getStatusClass = (
+    status?: string | null
+  ) => {
+    const normalized = String(
+      status || ""
+    ).toLowerCase();
 
     if (normalized === "pending") {
       return "status pending";
@@ -156,7 +189,9 @@ export default function ModerationPage() {
     return "status";
   };
 
-  const getReportTarget = (report: ReportDetail) => {
+  const getReportTarget = (
+    report: ReportDetail
+  ) => {
     if (report.reported_post) {
       return "Post";
     }
@@ -172,14 +207,20 @@ export default function ModerationPage() {
     return "Content";
   };
 
-  const formatDate = (date?: string | null) => {
+  const formatDate = (
+    date?: string | null
+  ) => {
     if (!date) {
       return "Unknown";
     }
 
     const parsedDate = new Date(date);
 
-    if (Number.isNaN(parsedDate.getTime())) {
+    if (
+      Number.isNaN(
+        parsedDate.getTime()
+      )
+    ) {
       return date;
     }
 
@@ -195,10 +236,13 @@ export default function ModerationPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_BASE}/reports/`, {
-        method: "GET",
-        headers: getHeaders(),
-      });
+      const response = await fetch(
+        `${API_BASE}/reports/`,
+        {
+          method: "GET",
+          headers: getHeaders(),
+        }
+      );
 
       if (response.status === 401) {
         handleUnauthorized();
@@ -206,38 +250,49 @@ export default function ModerationPage() {
       }
 
       if (!response.ok) {
-        throw new Error("Unable to load moderation reports.");
+        throw new Error(
+          "Unable to load moderation reports."
+        );
       }
 
       const data = await response.json();
 
       /*
-       * Supports both:
+       * Backend uses DRF pagination:
        *
-       * Direct array:
-       * [
-       *   {...},
-       *   {...}
-       * ]
-       *
-       * Django pagination:
        * {
        *   count: 10,
-       *   next: null,
+       *   next: "...",
        *   previous: null,
        *   results: [...]
        * }
+       *
+       * Also supports direct array
+       * just in case pagination changes.
        */
 
-      const reportData = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.results)
-        ? data.results
-        : [];
+      if (Array.isArray(data)) {
+        setReports(data);
+        setTotalReports(data.length);
+      } else {
+        const reportData =
+          Array.isArray(data?.results)
+            ? data.results
+            : [];
 
-      setReports(reportData);
+        setReports(reportData);
+
+        setTotalReports(
+          typeof data?.count === "number"
+            ? data.count
+            : reportData.length
+        );
+      }
     } catch (err) {
-      console.error("Reports error:", err);
+      console.error(
+        "Reports error:",
+        err
+      );
 
       setError(
         err instanceof Error
@@ -255,34 +310,37 @@ export default function ModerationPage() {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch(`${API_BASE}/analytics/`, {
-        method: "GET",
-        headers: getHeaders(),
-      });
+      const response = await fetch(
+        `${API_BASE}/analytics/`,
+        {
+          method: "GET",
+          headers: getHeaders(),
+        }
+      );
 
       if (response.status === 401) {
         handleUnauthorized();
         return;
       }
 
-      /*
-       * Analytics failure should not stop
-       * the complete moderation page.
-       */
-
       if (!response.ok) {
         console.error(
           "Analytics request failed:",
           response.status
         );
+
         return;
       }
 
-      const data = await response.json();
+      const data: Analytics =
+        await response.json();
 
       setAnalytics(data);
     } catch (err) {
-      console.error("Analytics error:", err);
+      console.error(
+        "Analytics error:",
+        err
+      );
     }
   };
 
@@ -311,7 +369,9 @@ export default function ModerationPage() {
      VIEW REPORT DETAILS
      ========================================================= */
 
-  const handleViewReport = async (reportId: number) => {
+  const handleViewReport = async (
+    reportId: number
+  ) => {
     try {
       setDetailLoading(true);
       setError("");
@@ -336,11 +396,15 @@ export default function ModerationPage() {
         );
       }
 
-      const data: ReportDetail = await response.json();
+      const data: ReportDetail =
+        await response.json();
 
       setSelectedReport(data);
     } catch (err) {
-      console.error("Report detail error:", err);
+      console.error(
+        "Report detail error:",
+        err
+      );
 
       setError(
         err instanceof Error
@@ -370,6 +434,7 @@ export default function ModerationPage() {
         {
           method: "POST",
           headers: getHeaders(),
+
           body: JSON.stringify({
             action,
           }),
@@ -398,23 +463,17 @@ export default function ModerationPage() {
           "Moderation action completed successfully."
       );
 
-      /*
-       * Refresh reports + analytics
-       * after successful action.
-       */
-
       await Promise.all([
         fetchReports(),
         fetchAnalytics(),
       ]);
 
-      /*
-       * Reload current report details
-       * so its status changes immediately.
-       */
-
-      if (selectedReport?.id === reportId) {
-        await handleViewReport(reportId);
+      if (
+        selectedReport?.id === reportId
+      ) {
+        await handleViewReport(
+          reportId
+        );
       }
     } catch (err) {
       console.error(
@@ -452,7 +511,9 @@ export default function ModerationPage() {
   const pendingReports = useMemo(() => {
     return reports.filter(
       (report) =>
-        String(report.status || "").toLowerCase() ===
+        String(
+          report.status || ""
+        ).toLowerCase() ===
         "pending"
     ).length;
   }, [reports]);
@@ -460,7 +521,9 @@ export default function ModerationPage() {
   const resolvedReports = useMemo(() => {
     return reports.filter(
       (report) =>
-        String(report.status || "").toLowerCase() ===
+        String(
+          report.status || ""
+        ).toLowerCase() ===
         "resolved"
     ).length;
   }, [reports]);
@@ -468,7 +531,9 @@ export default function ModerationPage() {
   const rejectedReports = useMemo(() => {
     return reports.filter(
       (report) =>
-        String(report.status || "").toLowerCase() ===
+        String(
+          report.status || ""
+        ).toLowerCase() ===
         "rejected"
     ).length;
   }, [reports]);
@@ -515,7 +580,9 @@ export default function ModerationPage() {
           <button
             type="button"
             className="navItem"
-            onClick={() => navigate("/home")}
+            onClick={() =>
+              navigate("/home")
+            }
           >
             <span>📄</span>
             Feed
@@ -524,7 +591,9 @@ export default function ModerationPage() {
           <button
             type="button"
             className="navItem"
-            onClick={() => navigate("/messages")}
+            onClick={() =>
+              navigate("/messages")
+            }
           >
             <span>💬</span>
             Messaging
@@ -533,7 +602,9 @@ export default function ModerationPage() {
           <button
             type="button"
             className="navItem"
-            onClick={() => navigate("/analytics")}
+            onClick={() =>
+              navigate("/analytics")
+            }
           >
             <span>📊</span>
             Analytics
@@ -555,7 +626,9 @@ export default function ModerationPage() {
             type="button"
             className="createBtn"
             onClick={() =>
-              navigate("/create-post")
+              navigate(
+                "/create-post"
+              )
             }
           >
             + Create Post
@@ -711,7 +784,7 @@ export default function ModerationPage() {
               </span>
 
               <strong>
-                {reports.length}
+                {totalReports}
               </strong>
             </div>
 
@@ -741,15 +814,13 @@ export default function ModerationPage() {
             </div>
 
             <span className="reportCount">
-              {reports.length}{" "}
-              {reports.length === 1
+              {totalReports}{" "}
+              {totalReports === 1
                 ? "Report"
                 : "Reports"}
             </span>
 
           </div>
-
-          {/* Loading */}
 
           {loading ? (
 
@@ -764,8 +835,6 @@ export default function ModerationPage() {
             </div>
 
           ) : reports.length === 0 ? (
-
-            /* Empty */
 
             <div className="emptyState">
 
@@ -786,90 +855,90 @@ export default function ModerationPage() {
 
           ) : (
 
-            /* Reports */
-
             <div className="reportsList">
 
-              {reports.map((report) => (
+              {reports.map(
+                (report) => (
 
-                <div
-                  key={report.id}
-                  className="reportCard"
-                >
+                  <div
+                    key={report.id}
+                    className="reportCard"
+                  >
 
-                  <div className="reportMain">
+                    <div className="reportMain">
 
-                    <div className="reportIcon">
-                      🛡️
-                    </div>
+                      <div className="reportIcon">
+                        🛡️
+                      </div>
 
-                    <div className="reportInfo">
+                      <div className="reportInfo">
 
-                      <div className="reportTitleRow">
+                        <div className="reportTitleRow">
 
-                        <h3>
-                          Report #{report.id}
-                        </h3>
+                          <h3>
+                            Report #{report.id}
+                          </h3>
 
-                        <span
-                          className={getStatusClass(
-                            report.status
-                          )}
-                        >
+                          <span
+                            className={getStatusClass(
+                              report.status
+                            )}
+                          >
+                            {getReasonLabel(
+                              report.status
+                            )}
+                          </span>
+
+                        </div>
+
+                        <p className="reportReason">
                           {getReasonLabel(
-                            report.status
+                            report.reason
                           )}
-                        </span>
+                        </p>
 
-                      </div>
+                        <div className="reportMeta">
 
-                      <p className="reportReason">
-                        {getReasonLabel(
-                          report.reason
-                        )}
-                      </p>
+                          <span>
+                            Reporter:{" "}
+                            <strong>
+                              {report.reporter ||
+                                "Unknown"}
+                            </strong>
+                          </span>
 
-                      <div className="reportMeta">
+                          <span>
+                            •
+                          </span>
 
-                        <span>
-                          Reporter:{" "}
-                          <strong>
-                            {report.reporter ||
-                              "Unknown"}
-                          </strong>
-                        </span>
+                          <span>
+                            {formatDate(
+                              report.created_at
+                            )}
+                          </span>
 
-                        <span>
-                          •
-                        </span>
-
-                        <span>
-                          {formatDate(
-                            report.created_at
-                          )}
-                        </span>
+                        </div>
 
                       </div>
 
                     </div>
+
+                    <button
+                      type="button"
+                      className="viewBtn"
+                      onClick={() =>
+                        handleViewReport(
+                          report.id
+                        )
+                      }
+                    >
+                      View Details →
+                    </button>
 
                   </div>
 
-                  <button
-                    type="button"
-                    className="viewBtn"
-                    onClick={() =>
-                      handleViewReport(
-                        report.id
-                      )
-                    }
-                  >
-                    View Details →
-                  </button>
-
-                </div>
-
-              ))}
+                )
+              )}
 
             </div>
 
@@ -924,7 +993,8 @@ export default function ModerationPage() {
                 </span>
 
                 <strong>
-                  {analytics.reports_by_reason?.length
+                  {analytics.reports_by_reason
+                    ?.length
                     ? getReasonLabel(
                         analytics
                           .reports_by_reason[0]
@@ -942,7 +1012,8 @@ export default function ModerationPage() {
                 </span>
 
                 <strong>
-                  {analytics.top_reporters?.length
+                  {analytics.top_reporters
+                    ?.length
                     ? analytics
                         .top_reporters[0]
                         .username
@@ -958,7 +1029,8 @@ export default function ModerationPage() {
                 </span>
 
                 <strong>
-                  {analytics.top_moderators?.length
+                  {analytics.top_moderators
+                    ?.length
                     ? analytics
                         .top_moderators[0]
                         .username
@@ -979,7 +1051,8 @@ export default function ModerationPage() {
           REPORT DETAIL MODAL
           ===================================================== */}
 
-      {(selectedReport || detailLoading) && (
+      {(selectedReport ||
+        detailLoading) && (
 
         <div
           className="modalOverlay"
@@ -992,8 +1065,6 @@ export default function ModerationPage() {
               event.stopPropagation()
             }
           >
-
-            {/* Detail Loading */}
 
             {detailLoading ? (
 
@@ -1011,9 +1082,9 @@ export default function ModerationPage() {
 
               <>
 
-                {/* =========================================
+                {/* =================================================
                     MODAL HEADER
-                    ========================================= */}
+                    ================================================= */}
 
                 <div className="modalHeader">
 
@@ -1024,7 +1095,8 @@ export default function ModerationPage() {
                     </p>
 
                     <h2>
-                      Report #{selectedReport.id}
+                      Report #
+                      {selectedReport.id}
                     </h2>
 
                   </div>
@@ -1032,8 +1104,12 @@ export default function ModerationPage() {
                   <button
                     type="button"
                     className="closeBtn"
-                    onClick={handleCloseModal}
-                    disabled={actionLoading}
+                    onClick={
+                      handleCloseModal
+                    }
+                    disabled={
+                      actionLoading
+                    }
                     aria-label="Close report"
                   >
                     ×
@@ -1041,9 +1117,9 @@ export default function ModerationPage() {
 
                 </div>
 
-                {/* =========================================
+                {/* =================================================
                     STATUS
-                    ========================================= */}
+                    ================================================= */}
 
                 <div className="detailStatusRow">
 
@@ -1065,9 +1141,9 @@ export default function ModerationPage() {
 
                 </div>
 
-                {/* =========================================
+                {/* =================================================
                     DETAILS
-                    ========================================= */}
+                    ================================================= */}
 
                 <div className="detailGrid">
 
@@ -1078,7 +1154,8 @@ export default function ModerationPage() {
                     </span>
 
                     <strong>
-                      {selectedReport.reporter ||
+                      {selectedReport.reporter
+                        ?.username ||
                         "Unknown"}
                     </strong>
 
@@ -1119,7 +1196,8 @@ export default function ModerationPage() {
                     </span>
 
                     <strong>
-                      {selectedReport.reviewed_by ||
+                      {selectedReport.reviewed_by
+                        ?.username ||
                         "Not reviewed"}
                     </strong>
 
@@ -1127,9 +1205,9 @@ export default function ModerationPage() {
 
                 </div>
 
-                {/* =========================================
+                {/* =================================================
                     DESCRIPTION
-                    ========================================= */}
+                    ================================================= */}
 
                 <div className="detailBlock">
 
@@ -1144,9 +1222,9 @@ export default function ModerationPage() {
 
                 </div>
 
-                {/* =========================================
+                {/* =================================================
                     REVIEW NOTE
-                    ========================================= */}
+                    ================================================= */}
 
                 {selectedReport.review_note && (
 
@@ -1157,16 +1235,18 @@ export default function ModerationPage() {
                     </h3>
 
                     <p>
-                      {selectedReport.review_note}
+                      {
+                        selectedReport.review_note
+                      }
                     </p>
 
                   </div>
 
                 )}
 
-                {/* =========================================
+                {/* =================================================
                     REVIEWED AT
-                    ========================================= */}
+                    ================================================= */}
 
                 {selectedReport.reviewed_at && (
 
@@ -1186,9 +1266,9 @@ export default function ModerationPage() {
 
                 )}
 
-                {/* =========================================
+                {/* =================================================
                     REPORTED USER
-                    ========================================= */}
+                    ================================================= */}
 
                 {selectedReport.reported_user && (
 
@@ -1211,9 +1291,9 @@ export default function ModerationPage() {
 
                 )}
 
-                {/* =========================================
+                {/* =================================================
                     REPORTED POST
-                    ========================================= */}
+                    ================================================= */}
 
                 {selectedReport.reported_post && (
 
@@ -1259,9 +1339,9 @@ export default function ModerationPage() {
 
                 )}
 
-                {/* =========================================
+                {/* =================================================
                     REPORTED COMMENT
-                    ========================================= */}
+                    ================================================= */}
 
                 {selectedReport.reported_comment && (
 
@@ -1307,13 +1387,15 @@ export default function ModerationPage() {
 
                 )}
 
-                {/* =========================================
+                {/* =================================================
                     MODERATION ACTIONS
-                    ========================================= */}
+                    ================================================= */}
 
                 {String(
-                  selectedReport.status || ""
-                ).toLowerCase() === "pending" && (
+                  selectedReport.status ||
+                    ""
+                ).toLowerCase() ===
+                  "pending" && (
 
                   <div className="moderationActions">
 
@@ -1330,7 +1412,9 @@ export default function ModerationPage() {
                         <button
                           type="button"
                           className="dangerAction"
-                          disabled={actionLoading}
+                          disabled={
+                            actionLoading
+                          }
                           onClick={() =>
                             handleModerationAction(
                               selectedReport.id,
@@ -1350,7 +1434,9 @@ export default function ModerationPage() {
                         <button
                           type="button"
                           className="dangerAction"
-                          disabled={actionLoading}
+                          disabled={
+                            actionLoading
+                          }
                           onClick={() =>
                             handleModerationAction(
                               selectedReport.id,
@@ -1365,14 +1451,21 @@ export default function ModerationPage() {
 
                       {/* Warn User */}
 
-                      {(selectedReport.reported_user ||
-                        selectedReport.reported_post ||
-                        selectedReport.reported_comment) && (
+                      {(
+                        selectedReport
+                          .reported_user ||
+                        selectedReport
+                          .reported_post ||
+                        selectedReport
+                          .reported_comment
+                      ) && (
 
                         <button
                           type="button"
                           className="warningAction"
-                          disabled={actionLoading}
+                          disabled={
+                            actionLoading
+                          }
                           onClick={() =>
                             handleModerationAction(
                               selectedReport.id,
@@ -1392,7 +1485,9 @@ export default function ModerationPage() {
                         <button
                           type="button"
                           className="suspendAction"
-                          disabled={actionLoading}
+                          disabled={
+                            actionLoading
+                          }
                           onClick={() =>
                             handleModerationAction(
                               selectedReport.id,
