@@ -49,21 +49,12 @@ interface Post {
 
   comments_count: number;
 
-  // IMPORTANT:
-  // Backend PostSerializer already returns this.
   is_owner: boolean;
 
   is_pinned: boolean;
   is_archived: boolean;
 
   comments: Comment[];
-}
-interface UserWarning {
-  id: number;
-  reason: string;
-  moderator: string | null;
-  reported_post_id: number | null;
-  created_at: string;
 }
 
 interface Profile {
@@ -144,8 +135,6 @@ export default function HomeFeed() {
 
   const [storyText, setStoryText] =
     useState("");
-    const [warnings, setWarnings] =
-  useState<UserWarning[]>([]);
 
   const [profile, setProfile] =
     useState<Profile | null>(null);
@@ -421,10 +410,12 @@ export default function HomeFeed() {
         return;
       }
 
+      // ====================================================
+      // FIRST LOGIN / PAGE LOAD
+      // ====================================================
+
       if (
-        lastNotificationId === null ||
-        latestUnread.id !==
-          lastNotificationId
+        lastNotificationId === null
       ) {
         setLastNotificationId(
           latestUnread.id
@@ -435,7 +426,34 @@ export default function HomeFeed() {
         );
 
         setTimeout(() => {
-          setNotificationAlert(null);
+          setNotificationAlert(
+            null
+          );
+        }, 6000);
+
+        return;
+      }
+
+      // ====================================================
+      // NEW NOTIFICATION DURING SESSION
+      // ====================================================
+
+      if (
+        latestUnread.id !==
+        lastNotificationId
+      ) {
+        setLastNotificationId(
+          latestUnread.id
+        );
+
+        setNotificationAlert(
+          latestUnread
+        );
+
+        setTimeout(() => {
+          setNotificationAlert(
+            null
+          );
         }, 6000);
       }
     } catch (error) {
@@ -458,8 +476,6 @@ export default function HomeFeed() {
     loadProfile();
     loadSuggestedPeople();
     checkNotifications();
-      loadWarnings();
-
   }, []);
 
   // ========================================================
@@ -867,56 +883,7 @@ export default function HomeFeed() {
   // ========================================================
   // EDIT POST
   // ========================================================
-// ========================================================
-// LOAD MY WARNINGS
-// ========================================================
 
-// ========================================================
-// LOAD MY WARNINGS
-// ========================================================
-
-const loadWarnings = async () => {
-  try {
-    const token = localStorage.getItem("access");
-
-    console.log("WARNING API TOKEN EXISTS:", !!token);
-
-    if (!token) {
-      console.log("No access token found.");
-      return;
-    }
-
-    const response = await api.get(
-      "/moderation/my-warnings/"
-    );
-
-    console.log(
-      "MY WARNINGS RESPONSE:",
-      response.data
-    );
-
-    const data = Array.isArray(response.data)
-      ? response.data
-      : response.data?.results || [];
-
-    setWarnings(data);
-  } catch (error: any) {
-    console.log(
-      "LOAD WARNINGS ERROR:",
-      error
-    );
-
-    console.log(
-      "STATUS:",
-      error?.response?.status
-    );
-
-    console.log(
-      "DATA:",
-      error?.response?.data
-    );
-  }
-};
   const handleEditPost =
     async (post: Post) => {
       const newContent =
@@ -1098,6 +1065,27 @@ const loadWarnings = async () => {
       try {
         setSubmittingReport(true);
 
+        /*
+         * Backend endpoint:
+         * POST /api/moderation/reports/create/
+         *
+         * Backend expects:
+         * reported_post
+         * reason
+         * description
+         *
+         * Valid reason values:
+         * spam
+         * harassment
+         * hate_speech
+         * violence
+         * misinformation
+         * nudity
+         * copyright
+         * scam
+         * other
+         */
+
         await api.post(
           "/moderation/reports/create/",
           {
@@ -1126,14 +1114,66 @@ const loadWarnings = async () => {
           error
         );
 
-        const message =
-          error?.response?.data
-            ?.detail ||
-          error?.response?.data
-            ?.message ||
-          error?.response?.data
-            ?.error ||
+        /*
+         * Django REST Framework can return
+         * validation errors in different formats.
+         */
+
+        const responseData =
+          error?.response?.data;
+
+        let message =
           "Failed to submit report.";
+
+        if (
+          typeof responseData ===
+          "string"
+        ) {
+          message =
+            responseData;
+        } else if (
+          responseData?.detail
+        ) {
+          message =
+            responseData.detail;
+        } else if (
+          responseData?.message
+        ) {
+          message =
+            responseData.message;
+        } else if (
+          responseData?.error
+        ) {
+          message =
+            responseData.error;
+        } else if (
+          responseData &&
+          typeof responseData ===
+            "object"
+        ) {
+          const firstError =
+            Object.values(
+              responseData
+            )[0];
+
+          if (
+            Array.isArray(
+              firstError
+            )
+          ) {
+            message =
+              String(
+                firstError[0]
+              );
+          } else if (
+            firstError
+          ) {
+            message =
+              String(
+                firstError
+              );
+          }
+        }
 
         alert(message);
       } finally {
@@ -1323,17 +1363,14 @@ const loadWarnings = async () => {
   // LOGOUT
   // ========================================================
 
- 
-    // ========================================================
-  // LOGOUT
-  // ========================================================
-
   const handleLogout = () => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     localStorage.removeItem("user");
 
-    alert("✅ Logout Successfully!");
+    alert(
+      "✅ Logout Successfully!"
+    );
 
     navigate("/signin", {
       replace: true,
@@ -1354,7 +1391,9 @@ const loadWarnings = async () => {
       {notificationAlert && (
         <div
           className="notificationPopup"
-          onClick={handleOpenNotifications}
+          onClick={
+            handleOpenNotifications
+          }
         >
           <div className="notificationPopupIcon">
             🔔
@@ -1379,7 +1418,9 @@ const loadWarnings = async () => {
             onClick={(e) => {
               e.stopPropagation();
 
-              setNotificationAlert(null);
+              setNotificationAlert(
+                null
+              );
             }}
           >
             ✕
@@ -1401,32 +1442,35 @@ const loadWarnings = async () => {
 
           <li
             className="active"
-            onClick={() => navigate("/home")}
+            onClick={() =>
+              navigate("/home")
+            }
           >
             📄 Feed
           </li>
 
           <li
-            onClick={() => navigate("/messages")}
+            onClick={() =>
+              navigate("/messages")
+            }
           >
             💬 Messaging
           </li>
 
-          <li
-            onClick={() => navigate("/analytics")}
-          >
-            📊 Analytics
-          </li>
 
           <li
-            onClick={() => navigate("/moderation")}
+            onClick={() =>
+              navigate("/moderation")
+            }
           >
             🛡 Moderation
           </li>
 
           <button
             className="landingBtn"
-            onClick={() => navigate("/")}
+            onClick={() =>
+              navigate("/")
+            }
           >
             ← Landing Page
           </button>
@@ -1435,14 +1479,18 @@ const loadWarnings = async () => {
 
         <button
           className="createBtn"
-          onClick={() => navigate("/create-post")}
+          onClick={() =>
+            navigate("/create-post")
+          }
         >
           Create Post
         </button>
 
         <button
           className="logoutBtn"
-          onClick={handleLogout}
+          onClick={
+            handleLogout
+          }
         >
           Logout
         </button>
@@ -1464,19 +1512,27 @@ const loadWarnings = async () => {
           <input
             type="text"
             placeholder="Search ConnectSphere..."
-            onFocus={() => navigate("/search")}
+            onFocus={() =>
+              navigate("/search")
+            }
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-
+              if (
+                e.key ===
+                "Enter"
+              ) {
                 const query =
                   e.currentTarget.value.trim();
 
                 if (query) {
                   navigate(
-                    `/search?q=${encodeURIComponent(query)}`
+                    `/search?q=${encodeURIComponent(
+                      query
+                    )}`
                   );
                 } else {
-                  navigate("/search");
+                  navigate(
+                    "/search"
+                  );
                 }
               }
             }}
@@ -1487,11 +1543,15 @@ const loadWarnings = async () => {
             {/* NOTIFICATION */}
 
             <span
-              onClick={handleOpenNotifications}
+              onClick={
+                handleOpenNotifications
+              }
               className="notificationBell"
               style={{
-                position: "relative",
-                cursor: "pointer",
+                position:
+                  "relative",
+                cursor:
+                  "pointer",
               }}
             >
               🔔
@@ -1500,24 +1560,38 @@ const loadWarnings = async () => {
                 <span
                   className="notificationBadge"
                   style={{
-                    position: "absolute",
+                    position:
+                      "absolute",
                     top: "-8px",
                     right: "-10px",
-                    minWidth: "18px",
-                    height: "18px",
-                    padding: "0 5px",
-                    borderRadius: "999px",
-                    background: "#ef4444",
-                    color: "#ffffff",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "2px solid white",
+                    minWidth:
+                      "18px",
+                    height:
+                      "18px",
+                    padding:
+                      "0 5px",
+                    borderRadius:
+                      "999px",
+                    background:
+                      "#ef4444",
+                    color:
+                      "#ffffff",
+                    fontSize:
+                      "11px",
+                    fontWeight:
+                      700,
+                    display:
+                      "flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    border:
+                      "2px solid white",
                   }}
                 >
-                  {unreadNotificationCount > 99
+                  {unreadNotificationCount >
+                  99
                     ? "99+"
                     : unreadNotificationCount}
                 </span>
@@ -1527,7 +1601,11 @@ const loadWarnings = async () => {
             {/* MESSAGES */}
 
             <span
-              onClick={() => navigate("/messages")}
+              onClick={() =>
+                navigate(
+                  "/messages"
+                )
+              }
             >
               ✉️
             </span>
@@ -1537,90 +1615,46 @@ const loadWarnings = async () => {
             <img
               src={
                 profile?.avatar
-                  ? getMediaUrl(profile.avatar)
+                  ? getMediaUrl(
+                      profile.avatar
+                    )
                   : defaultProfile
               }
               className="miniAvatar"
               alt="Profile"
-              onClick={() => navigate("/profile")}
+              onClick={() =>
+                navigate(
+                  "/profile"
+                )
+              }
             />
 
           </div>
 
         </div>
 
-       {/* ==================================================
-    WELCOME
-================================================== */}
+        {/* ==================================================
+            WELCOME
+        ================================================== */}
 
-<div className="welcomeCard">
+        <div className="welcomeCard">
 
-  <h2>
-    Welcome back,{" "}
-    {user.username || "User"} 👋
-  </h2>
+          <h2>
+            Welcome back,{" "}
+            {user.username ||
+              "User"}{" "}
+            👋
+          </h2>
 
-  <p>
-    {user.role === "moderator"
-      ? "🛡️ Moderator Account"
-      : user.email}
-  </p>
+          <p>
+            {user.role ===
+            "moderator"
+              ? "🛡️ Moderator Account"
+              : user.email}
+          </p>
 
-</div>
-{/* ==================================================
-    MODERATOR WARNING
-================================================== */}
-
-{warnings.length > 0 && (
-  <div className="warningCard">
-
-    <div className="warningCardHeader">
-      <span className="warningIcon">
-        ⚠️
-      </span>
-
-      <div>
-        <h3>
-          Account Warning
-        </h3>
-
-        <p>
-          You have received a moderation warning.
-        </p>
-      </div>
-    </div>
-
-    {warnings.map((warning) => (
-      <div
-        className="warningItem"
-        key={warning.id}
-      >
-        <div>
-          <strong>
-            Reason:
-          </strong>{" "}
-          {warning.reason
-            .replaceAll("_", " ")
-            .replace(
-              /\b\w/g,
-              (char) => char.toUpperCase()
-            )}
         </div>
 
-        <small>
-          {warning.moderator
-            ? `Issued by ${warning.moderator}`
-            : "Issued by Moderator"}
-          {" • "}
-          {new Date(
-            warning.created_at
-          ).toLocaleString()}
-        </small>
-      </div>
-    ))}
-
-  </div>
-)}
         {/* ==================================================
             STORIES
         ================================================== */}
@@ -1629,7 +1663,9 @@ const loadWarnings = async () => {
 
           <div
             className="story addStory"
-            onClick={handleOpenAddStory}
+            onClick={
+              handleOpenAddStory
+            }
           >
             <div className="storyImageWrapper addStoryCircle">
               <span>
@@ -1643,32 +1679,49 @@ const loadWarnings = async () => {
           </div>
 
           {stories
-            .filter((story) => Boolean(story.image))
-            .map((story) => (
-              <div
-                className="story"
-                key={story.id}
-                onClick={() => handleOpenStory(story)}
-              >
+            .filter(
+              (story) =>
+                Boolean(
+                  story.image
+                )
+            )
+            .map(
+              (story) => (
+                <div
+                  className="story"
+                  key={story.id}
+                  onClick={() =>
+                    handleOpenStory(
+                      story
+                    )
+                  }
+                >
 
-                <div className="storyImageWrapper">
+                  <div className="storyImageWrapper">
 
-                  <img
-                    src={story.image}
-                    alt={story.name}
-                  />
+                    <img
+                      src={
+                        story.image
+                      }
+                      alt={
+                        story.name
+                      }
+                    />
+
+                  </div>
+
+                  <span
+                    className="storyName"
+                    title={
+                      story.name
+                    }
+                  >
+                    {story.name}
+                  </span>
 
                 </div>
-
-                <span
-                  className="storyName"
-                  title={story.name}
-                >
-                  {story.name}
-                </span>
-
-              </div>
-            ))}
+              )
+            )}
 
         </div>
 
@@ -1683,10 +1736,15 @@ const loadWarnings = async () => {
             placeholder="Share something..."
             value={postText}
             onChange={(e) =>
-              setPostText(e.target.value)
+              setPostText(
+                e.target.value
+              )
             }
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (
+                e.key ===
+                "Enter"
+              ) {
                 handlePost();
               }
             }}
@@ -1694,7 +1752,9 @@ const loadWarnings = async () => {
 
           <button
             className="postBtn"
-            onClick={handlePost}
+            onClick={
+              handlePost
+            }
           >
             Post
           </button>
@@ -1722,7 +1782,9 @@ const loadWarnings = async () => {
             title,
             description,
             hashtags,
-          } = getPostParts(post.content);
+          } = getPostParts(
+            post.content
+          );
 
           return (
             <div
@@ -1739,17 +1801,23 @@ const loadWarnings = async () => {
                 <img
                   src={
                     post.avatar
-                      ? getMediaUrl(post.avatar)
+                      ? getMediaUrl(
+                          post.avatar
+                        )
                       : defaultProfile
                   }
                   className="postAvatar"
-                  alt={post.username}
+                  alt={
+                    post.username
+                  }
                 />
 
                 <div className="postUserDetails">
 
                   <h4>
-                    {post.username}
+                    {
+                      post.username
+                    }
                   </h4>
 
                   <small>
@@ -1765,69 +1833,6 @@ const loadWarnings = async () => {
                   )}
 
                 </div>
-                {/* ==================================================
-    WARNING FOR THIS POST
-================================================== */}
-
-{warnings.some(
-  (warning) =>
-    warning.reported_post_id === post.id
-) && (
-  <div className="postWarningCard">
-
-    <div className="postWarningHeader">
-      <span className="postWarningIcon">
-        ⚠️
-      </span>
-
-      <div>
-        <strong>
-          Moderation Warning
-        </strong>
-
-        <p>
-          This post received a moderation warning.
-        </p>
-      </div>
-    </div>
-
-    {warnings
-      .filter(
-        (warning) =>
-          warning.reported_post_id ===
-          post.id
-      )
-      .map((warning) => (
-        <div
-          className="postWarningDetails"
-          key={warning.id}
-        >
-          <p>
-            <strong>Reason:</strong>{" "}
-            {warning.reason
-              .replaceAll("_", " ")
-              .replace(
-                /\b\w/g,
-                (char) =>
-                  char.toUpperCase()
-              )}
-          </p>
-
-          <small>
-            {warning.moderator
-              ? `Issued by ${warning.moderator}`
-              : "Issued by Moderator"}
-
-            {" • "}
-
-            {new Date(
-              warning.created_at
-            ).toLocaleString()}
-          </small>
-        </div>
-      ))}
-  </div>
-)}
 
                 {/* ==================================================
                     POST DOT MENU
@@ -1842,7 +1847,8 @@ const loadWarnings = async () => {
                       e.stopPropagation();
 
                       setOpenMenu(
-                        openMenu === post.id
+                        openMenu ===
+                          post.id
                           ? null
                           : post.id
                       );
@@ -1851,7 +1857,8 @@ const loadWarnings = async () => {
                     ⋮
                   </button>
 
-                  {openMenu === post.id && (
+                  {openMenu ===
+                    post.id && (
                     <div
                       className="menuDropdown"
                       onClick={(e) =>
@@ -1859,26 +1866,22 @@ const loadWarnings = async () => {
                       }
                     >
 
-                      {/* ==================================================
-                          OWNER OPTIONS
-                          ONLY POST OWNER CAN SEE THESE
-                      ================================================== */}
+                      {/* OWNER OPTIONS */}
 
-                      {post.is_owner === true && (
+                      {post.is_owner ===
+                        true && (
                         <>
-
-                          {/* EDIT */}
 
                           <button
                             type="button"
                             onClick={() =>
-                              handleEditPost(post)
+                              handleEditPost(
+                                post
+                              )
                             }
                           >
                             ✏ Edit Post
                           </button>
-
-                          {/* DELETE */}
 
                           <button
                             type="button"
@@ -1890,8 +1893,6 @@ const loadWarnings = async () => {
                           >
                             🗑 Delete Post
                           </button>
-
-                          {/* PIN / UNPIN */}
 
                           {post.is_pinned ? (
                             <button
@@ -1908,14 +1909,14 @@ const loadWarnings = async () => {
                             <button
                               type="button"
                               onClick={() =>
-                                handlePinPost(post)
+                                handlePinPost(
+                                  post
+                                )
                               }
                             >
                               📌 Pin Post
                             </button>
                           )}
-
-                          {/* ARCHIVE / RESTORE */}
 
                           {post.is_archived ? (
                             <button
@@ -1944,16 +1945,14 @@ const loadWarnings = async () => {
                         </>
                       )}
 
-                      {/* ==================================================
-                          REPORT
-                          EVERY USER CAN SEE REPORT
-                          DO NOT CHANGE REPORT WORKING
-                      ================================================== */}
+                      {/* REPORT */}
 
                       <button
                         type="button"
                         onClick={() =>
-                          handleOpenReport(post)
+                          handleOpenReport(
+                            post
+                          )
                         }
                       >
                         🚩 Report Post
@@ -1973,10 +1972,14 @@ const loadWarnings = async () => {
               {title && (
                 <h3
                   style={{
-                    fontSize: "19px",
-                    fontWeight: 700,
-                    color: "#111827",
-                    marginBottom: "10px",
+                    fontSize:
+                      "19px",
+                    fontWeight:
+                      700,
+                    color:
+                      "#111827",
+                    marginBottom:
+                      "10px",
                   }}
                 >
                   {title}
@@ -1990,9 +1993,12 @@ const loadWarnings = async () => {
               <p className="postContent">
 
                 {description
-                  ? formatPostContent(description)
+                  ? formatPostContent(
+                      description
+                    )
                   : formatPostContent(
-                      title || post.content
+                      title ||
+                        post.content
                     )}
 
               </p>
@@ -2005,10 +2011,13 @@ const loadWarnings = async () => {
                 <p
                   className="postContent"
                   style={{
-                    marginTop: "-8px",
+                    marginTop:
+                      "-8px",
                   }}
                 >
-                  {formatPostContent(hashtags)}
+                  {formatPostContent(
+                    hashtags
+                  )}
                 </p>
               )}
 
@@ -2017,12 +2026,15 @@ const loadWarnings = async () => {
               ================================================== */}
 
               {post.images &&
-                post.images.length > 0 &&
-                post.images[0].image && (
+                post.images
+                  .length > 0 &&
+                post.images[0]
+                  .image && (
 
                   <img
                     src={getMediaUrl(
-                      post.images[0].image
+                      post.images[0]
+                        .image
                     )}
                     className="postImage"
                     alt="Post"
@@ -2031,7 +2043,8 @@ const loadWarnings = async () => {
                       console.error(
                         "Post image failed:",
                         getMediaUrl(
-                          post.images[0].image
+                          post.images[0]
+                            .image
                         )
                       );
 
@@ -2052,28 +2065,41 @@ const loadWarnings = async () => {
 
                 <button
                   onClick={() =>
-                    handleLike(post.id)
+                    handleLike(
+                      post.id
+                    )
                   }
                 >
                   {post.is_liked
                     ? "❤️ Liked"
                     : "🤍 Like"}{" "}
-                  ({post.likes_count})
+                  (
+                  {
+                    post.likes_count
+                  }
+                  )
                 </button>
 
                 {/* COMMENTS */}
 
                 <button
                   onClick={() =>
-                    setOpenComments((prev) => ({
-                      ...prev,
-                      [post.id]:
-                        !prev[post.id],
-                    }))
+                    setOpenComments(
+                      (prev) => ({
+                        ...prev,
+                        [post.id]:
+                          !prev[
+                            post.id
+                          ],
+                      })
+                    )
                   }
                 >
                   💬 Comments (
-                  {post.comments_count})
+                  {
+                    post.comments_count
+                  }
+                  )
                 </button>
 
                 {/* SHARE */}
@@ -2084,7 +2110,9 @@ const loadWarnings = async () => {
                     const shareUrl =
                       `${window.location.origin}/post/${post.id}`;
 
-                    if (navigator.share) {
+                    if (
+                      navigator.share
+                    ) {
 
                       navigator.share({
                         title:
@@ -2108,6 +2136,7 @@ const loadWarnings = async () => {
                         "Post link copied!"
                       );
                     }
+
                   }}
                 >
                   ↗ Share
@@ -2119,14 +2148,18 @@ const loadWarnings = async () => {
                   COMMENTS
               ================================================== */}
 
-              {openComments[post.id] && (
+              {openComments[
+                post.id
+              ] && (
                 <div className="commentSection">
 
                   {post.comments?.map(
                     (comment) => (
 
                       <div
-                        key={comment.id}
+                        key={
+                          comment.id
+                        }
                         className="commentItem"
                       >
 
@@ -2145,11 +2178,15 @@ const loadWarnings = async () => {
                         <div className="commentBody">
 
                           <strong>
-                            {comment.username}
+                            {
+                              comment.username
+                            }
                           </strong>
 
                           <p>
-                            {comment.content}
+                            {
+                              comment.content
+                            }
                           </p>
 
                           {comment.is_owner && (
@@ -2179,17 +2216,24 @@ const loadWarnings = async () => {
                       type="text"
                       placeholder="Write a comment..."
                       value={
-                        commentText[post.id] || ""
+                        commentText[
+                          post.id
+                        ] || ""
                       }
                       onChange={(e) =>
-                        setCommentText((prev) => ({
-                          ...prev,
-                          [post.id]:
-                            e.target.value,
-                        }))
+                        setCommentText(
+                          (prev) => ({
+                            ...prev,
+                            [post.id]:
+                              e.target.value,
+                          })
+                        )
                       }
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (
+                          e.key ===
+                          "Enter"
+                        ) {
                           handleComment(
                             post.id
                           );
@@ -2231,18 +2275,20 @@ const loadWarnings = async () => {
           <img
             src={
               profile?.avatar
-                ? getMediaUrl(profile.avatar)
+                ? getMediaUrl(
+                    profile.avatar
+                  )
                 : defaultProfile
             }
             className="profileCardAvatar"
             alt="Profile"
           />
 
-          <h4>
+          <h5>
             {profile?.username ||
               user.username ||
               "User"}
-          </h4>
+          </h5>
 
           <p>
             {profile?.email ||
@@ -2252,7 +2298,9 @@ const loadWarnings = async () => {
           <button
             className="viewProfileBtn"
             onClick={() =>
-              navigate("/profile")
+              navigate(
+                "/profile"
+              )
             }
           >
             View Profile
@@ -2306,7 +2354,8 @@ const loadWarnings = async () => {
             Suggested People
           </h3>
 
-          {suggestedPeople.length === 0 ? (
+          {suggestedPeople.length ===
+          0 ? (
 
             <p className="noSuggestions">
               No suggestions available.
@@ -2328,12 +2377,16 @@ const loadWarnings = async () => {
 
                   <div
                     className="suggestItem"
-                    key={person.id}
+                    key={
+                      person.id
+                    }
                   >
 
                     <img
                       src={avatar}
-                      alt={person.username}
+                      alt={
+                        person.username
+                      }
                       onError={(e) => {
                         e.currentTarget.src =
                           defaultProfile;
@@ -2341,7 +2394,9 @@ const loadWarnings = async () => {
                     />
 
                     <span>
-                      {person.username}
+                      {
+                        person.username
+                      }
                     </span>
 
                   </div>
@@ -2365,7 +2420,9 @@ const loadWarnings = async () => {
         <div
           className="storyViewerOverlay"
           onClick={() =>
-            setActiveStory(null)
+            setActiveStory(
+              null
+            )
           }
         >
 
@@ -2379,7 +2436,9 @@ const loadWarnings = async () => {
             <button
               className="storyCloseBtn"
               onClick={() =>
-                setActiveStory(null)
+                setActiveStory(
+                  null
+                )
               }
             >
               ✕
@@ -2388,14 +2447,20 @@ const loadWarnings = async () => {
             <div className="storyViewerHeader">
 
               <img
-                src={activeStory.image}
-                alt={activeStory.name}
+                src={
+                  activeStory.image
+                }
+                alt={
+                  activeStory.name
+                }
               />
 
               <div>
 
                 <strong>
-                  {activeStory.name}
+                  {
+                    activeStory.name
+                  }
                 </strong>
 
                 <small>
@@ -2411,7 +2476,9 @@ const loadWarnings = async () => {
               {activeStory.storyImage && (
 
                 <img
-                  src={activeStory.storyImage}
+                  src={
+                    activeStory.storyImage
+                  }
                   alt="Story"
                   className="storyFullImage"
                 />
@@ -2419,7 +2486,9 @@ const loadWarnings = async () => {
               )}
 
               <p>
-                {activeStory.text}
+                {
+                  activeStory.text
+                }
               </p>
 
             </div>
@@ -2439,7 +2508,9 @@ const loadWarnings = async () => {
         <div
           className="addStoryOverlay"
           onClick={() =>
-            setShowAddStory(false)
+            setShowAddStory(
+              false
+            )
           }
         >
 
@@ -2459,7 +2530,9 @@ const loadWarnings = async () => {
               <button
                 className="storyCloseBtn"
                 onClick={() =>
-                  setShowAddStory(false)
+                  setShowAddStory(
+                    false
+                  )
                 }
               >
                 ✕
@@ -2472,7 +2545,9 @@ const loadWarnings = async () => {
               placeholder="Write something for your story..."
               value={storyText}
               onChange={(e) =>
-                setStoryText(e.target.value)
+                setStoryText(
+                  e.target.value
+                )
               }
             />
 
@@ -2487,13 +2562,12 @@ const loadWarnings = async () => {
                 onChange={(e) => {
 
                   if (
-                    e.target.files?.length
+                    e.target.files
+                      ?.length
                   ) {
-
                     setStoryImage(
                       e.target.files[0]
                     );
-
                   }
 
                 }}
@@ -2521,7 +2595,9 @@ const loadWarnings = async () => {
               <button
                 className="cancelStoryBtn"
                 onClick={() =>
-                  setShowAddStory(false)
+                  setShowAddStory(
+                    false
+                  )
                 }
               >
                 Cancel
@@ -2529,7 +2605,9 @@ const loadWarnings = async () => {
 
               <button
                 className="publishStoryBtn"
-                onClick={handleAddStory}
+                onClick={
+                  handleAddStory
+                }
               >
                 🚀 Add Story
               </button>
@@ -2544,160 +2622,167 @@ const loadWarnings = async () => {
 
       {/* ====================================================
           REPORT POST MODAL
-          ⚠️ UNCHANGED
       ==================================================== */}
 
       {showReportModal &&
         reportPost && (
 
+        <div
+          className="reportModalOverlay"
+          onClick={
+            handleCloseReport
+          }
+        >
+
           <div
-            className="reportModalOverlay"
-            onClick={handleCloseReport}
+            className="reportModal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
           >
 
-            <div
-              className="reportModal"
-              onClick={(e) =>
-                e.stopPropagation()
+            <div className="reportModalHeader">
+
+              <h2>
+                🚩 Report Post
+              </h2>
+
+              <button
+                type="button"
+                className="reportCloseBtn"
+                onClick={
+                  handleCloseReport
+                }
+                disabled={
+                  submittingReport
+                }
+              >
+                ✕
+              </button>
+
+            </div>
+
+            <p className="reportModalText">
+              Why are you reporting this post?
+            </p>
+
+            {/* ==================================================
+                BACKEND VALID REASONS
+                ================================================== */}
+
+            <select
+              value={
+                reportReason
               }
+              onChange={(e) =>
+                setReportReason(
+                  e.target.value
+                )
+              }
+              disabled={
+                submittingReport
+              }
+              className="reportReasonSelect"
             >
 
-              {/* REPORT HEADER */}
+              <option value="">
+                Select a reason
+              </option>
 
-              <div className="reportModalHeader">
+              <option value="spam">
+                Spam
+              </option>
 
-                <h2>
-                  🚩 Report Post
-                </h2>
+              <option value="harassment">
+                Harassment or bullying
+              </option>
 
-                <button
-                  type="button"
-                  className="reportCloseBtn"
-                  onClick={
-                    handleCloseReport
-                  }
-                  disabled={
-                    submittingReport
-                  }
-                >
-                  ✕
-                </button>
+              <option value="hate_speech">
+                Hate speech
+              </option>
 
-              </div>
+              <option value="violence">
+                Violence or dangerous content
+              </option>
 
-              {/* REPORT TEXT */}
+              <option value="misinformation">
+                Misinformation
+              </option>
 
-              <p className="reportModalText">
-                Why are you reporting this post?
-              </p>
+              <option value="nudity">
+                Nudity or sexual content
+              </option>
 
-              {/* REASON */}
+              <option value="copyright">
+                Copyright violation
+              </option>
 
-              <select
-                value={reportReason}
-                onChange={(e) =>
-                  setReportReason(
-                    e.target.value
-                  )
+              <option value="scam">
+                Scam or fraud
+              </option>
+
+              <option value="other">
+                Other
+              </option>
+
+            </select>
+
+            <textarea
+              className="reportDescriptionInput"
+              placeholder="Additional details (optional)..."
+              value={
+                reportDescription
+              }
+              onChange={(e) =>
+                setReportDescription(
+                  e.target.value
+                )
+              }
+              disabled={
+                submittingReport
+              }
+              rows={5}
+            />
+
+            <div className="reportModalActions">
+
+              <button
+                type="button"
+                className="cancelReportBtn"
+                onClick={
+                  handleCloseReport
                 }
                 disabled={
                   submittingReport
                 }
-                className="reportReasonSelect"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="submitReportBtn"
+                onClick={
+                  handleSubmitReport
+                }
+                disabled={
+                  submittingReport
+                }
               >
 
-                <option value="">
-                  Select a reason
-                </option>
+                {submittingReport
+                  ? "Submitting..."
+                  : "🚩 Submit Report"}
 
-                <option value="spam">
-                  Spam
-                </option>
-
-                <option value="harassment">
-                  Harassment or bullying
-                </option>
-
-                <option value="hate_speech">
-                  Hate speech
-                </option>
-
-                <option value="violence">
-                  Violence or dangerous content
-                </option>
-
-                <option value="misinformation">
-                  Misinformation
-                </option>
-
-                <option value="inappropriate">
-                  Inappropriate content
-                </option>
-
-                <option value="other">
-                  Other
-                </option>
-
-              </select>
-
-              {/* DESCRIPTION */}
-
-              <textarea
-                className="reportDescriptionInput"
-                placeholder="Additional details (optional)..."
-                value={reportDescription}
-                onChange={(e) =>
-                  setReportDescription(
-                    e.target.value
-                  )
-                }
-                disabled={
-                  submittingReport
-                }
-                rows={5}
-              />
-
-              {/* ACTION BUTTONS */}
-
-              <div className="reportModalActions">
-
-                <button
-                  type="button"
-                  className="cancelReportBtn"
-                  onClick={
-                    handleCloseReport
-                  }
-                  disabled={
-                    submittingReport
-                  }
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  className="submitReportBtn"
-                  onClick={
-                    handleSubmitReport
-                  }
-                  disabled={
-                    submittingReport
-                  }
-                >
-
-                  {submittingReport
-                    ? "Submitting..."
-                    : "🚩 Submit Report"}
-
-                </button>
-
-              </div>
+              </button>
 
             </div>
 
           </div>
 
-        )}
+        </div>
+
+      )}
 
     </div>
   );

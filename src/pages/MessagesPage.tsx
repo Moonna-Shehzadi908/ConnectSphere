@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./MessagesPage.css";
+import { useNavigate } from "react-router-dom";
 
 import api from "../services/api";
 import defaultProfile from "../assets/profile icone.webp";
@@ -113,6 +114,7 @@ export default function MessagesPage() {
    * We do NOT call /profile/me/ because that endpoint does not
    * exist in the current backend.
    */
+  const navigate = useNavigate();
   let currentUser: any = {};
 
   try {
@@ -1175,37 +1177,20 @@ export default function MessagesPage() {
 
         <ul>
           <li
-            onClick={() =>
-              (window.location.href =
-                "/home")
-            }
-          >
-            📄 Feed
-          </li>
+  onClick={() => navigate("/home")}
+>
+  📄 Feed
+</li>
 
-          <li className="active">
-            💬 Messaging
-          </li>
+<li className="active">
+  💬 Messaging
+</li>
 
-          <li
-            onClick={() =>
-              (window.location.href =
-                "/analytics")
-            }
-          >
-            📊 Analytics
-          </li>
-
-
-          <li
-            onClick={() =>
-              (window.location.href =
-                "/moderation")
-            }
-          >
-            🛡️ Moderation
-          </li>
-
+<li
+  onClick={() => navigate("/moderation")}
+>
+  🛡️ Moderation
+</li>
       
           
         </ul>

@@ -1,16 +1,12 @@
-/* =========================================================
+ /* =========================================================
    CONNECTSPHERE - NOTIFICATIONS PAGE
 ========================================================= */
 
 .notificationsPage {
   min-height: 100vh;
-
   background: #f4f6fb;
-
   padding: 30px;
-
   font-family: Inter, Arial, Helvetica, sans-serif;
-
   color: #111827;
 }
 
@@ -21,19 +17,15 @@
 
 .notificationsHeader {
   max-width: 850px;
-
   margin: 0 auto 22px;
 
   background: #ffffff;
-
   border-radius: 18px;
 
   padding: 22px 26px;
 
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
 
   gap: 20px;
@@ -46,7 +38,6 @@
   margin: 0;
 
   font-size: 25px;
-
   font-weight: 800;
 
   color: #111827;
@@ -56,7 +47,6 @@
   margin: 5px 0 0;
 
   font-size: 12px;
-
   color: #6b7280;
 }
 
@@ -69,7 +59,6 @@
   border: none;
 
   background: #4f46e5;
-
   color: #ffffff;
 
   padding: 10px 16px;
@@ -77,7 +66,6 @@
   border-radius: 9px;
 
   font-size: 11px;
-
   font-weight: 700;
 
   cursor: pointer;
@@ -89,7 +77,6 @@
 
 .markAllBtn:hover {
   background: #4338ca;
-
   transform: translateY(-1px);
 }
 
@@ -104,7 +91,6 @@
   margin: 0 auto;
 
   display: flex;
-
   flex-direction: column;
 
   gap: 10px;
@@ -117,7 +103,6 @@
 
 .notificationCard {
   width: 100%;
-
   min-height: 76px;
 
   background: #ffffff;
@@ -127,7 +112,6 @@
   padding: 14px 16px;
 
   display: flex;
-
   align-items: center;
 
   gap: 13px;
@@ -174,12 +158,35 @@
 
 
 /* =========================================================
+   MODERATION WARNING
+========================================================= */
+
+.notificationCard.moderationWarning {
+  background: #fffaf0;
+
+  border: 1px solid #fde68a;
+
+  border-left: 4px solid #f59e0b;
+}
+
+.notificationCard.moderationWarning.unread {
+  background: #fff8e8;
+
+  border-left: 4px solid #f59e0b;
+}
+
+.notificationCard.moderationWarning:hover {
+  box-shadow:
+    0 8px 24px rgba(245, 158, 11, 0.12);
+}
+
+
+/* =========================================================
    NOTIFICATION ICON
 ========================================================= */
 
 .notificationIcon {
   width: 42px;
-
   height: 42px;
 
   min-width: 42px;
@@ -189,12 +196,20 @@
   background: #eef0ff;
 
   display: flex;
-
   align-items: center;
-
   justify-content: center;
 
   font-size: 18px;
+}
+
+
+/* =========================================================
+   MODERATION WARNING ICON
+========================================================= */
+
+.notificationCard.moderationWarning
+.notificationIcon {
+  background: #fef3c7;
 }
 
 
@@ -208,11 +223,42 @@
   min-width: 0;
 
   display: flex;
-
   flex-direction: column;
 
   gap: 5px;
 }
+
+
+/* =========================================================
+   NOTIFICATION TYPE
+========================================================= */
+
+.notificationType {
+  color: #6b7280;
+
+  font-size: 9px;
+
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.6px;
+}
+
+
+/* =========================================================
+   MODERATION WARNING TYPE
+========================================================= */
+
+.notificationCard.moderationWarning
+.notificationType {
+  color: #b45309;
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
 
 .notificationMessage {
   display: flex;
@@ -238,10 +284,30 @@
   color: #374151;
 }
 
+
+/* =========================================================
+   DATE
+========================================================= */
+
 .notificationContent small {
   color: #9ca3af;
 
   font-size: 10px;
+}
+
+
+/* =========================================================
+   MODERATION WARNING MESSAGE
+========================================================= */
+
+.notificationCard.moderationWarning
+.notificationMessage strong {
+  color: #92400e;
+}
+
+.notificationCard.moderationWarning
+.notificationMessage span {
+  color: #78350f;
 }
 
 
@@ -261,7 +327,6 @@
 
 .notificationActions button {
   width: 31px;
-
   height: 31px;
 
   border: none;
@@ -269,9 +334,7 @@
   border-radius: 8px;
 
   display: flex;
-
   align-items: center;
-
   justify-content: center;
 
   cursor: pointer;
@@ -282,7 +345,9 @@
 }
 
 
-/* Mark read */
+/* =========================================================
+   MARK READ
+========================================================= */
 
 .readBtn {
   background: #eef0ff;
@@ -297,7 +362,9 @@
 }
 
 
-/* Delete */
+/* =========================================================
+   DELETE
+========================================================= */
 
 .deleteBtn {
   background: #fef2f2;
@@ -324,11 +391,9 @@
   min-height: 260px;
 
   display: flex;
-
   flex-direction: column;
 
   align-items: center;
-
   justify-content: center;
 
   text-align: center;
@@ -341,7 +406,6 @@
 
 .emptyBell {
   width: 60px;
-
   height: 60px;
 
   border-radius: 50%;
@@ -349,9 +413,7 @@
   background: #eef0ff;
 
   display: flex;
-
   align-items: center;
-
   justify-content: center;
 
   font-size: 26px;
@@ -441,7 +503,6 @@
 
   .notificationIcon {
     width: 38px;
-
     height: 38px;
 
     min-width: 38px;
@@ -455,7 +516,10 @@
 
   .notificationActions button {
     width: 28px;
-
     height: 28px;
+  }
+
+  .notificationType {
+    font-size: 8px;
   }
 }

@@ -599,16 +599,7 @@ export default function ModerationPage() {
             Messaging
           </button>
 
-          <button
-            type="button"
-            className="navItem"
-            onClick={() =>
-              navigate("/analytics")
-            }
-          >
-            <span>📊</span>
-            Analytics
-          </button>
+         
 
           <button
             type="button"
@@ -634,15 +625,42 @@ export default function ModerationPage() {
             + Create Post
           </button>
 
-          <button
-            type="button"
-            className="backBtn"
-            onClick={() =>
-              navigate("/home")
-            }
-          >
-            ← Back to Home
-          </button>
+     <button
+  type="button"
+  onClick={() => navigate("/home")}
+  style={{
+    display: "flex",
+    visibility: "visible",
+    opacity: 1,
+    position: "relative",
+    zIndex: 9999,
+
+    width: "100%",
+    height: "40px",
+    minHeight: "40px",
+
+    alignItems: "center",
+    justifyContent: "center",
+
+    margin: "0",
+    padding: "0 13px",
+
+    backgroundColor: "#4f46e5",
+    color: "#ffffff",
+
+    border: "none",
+    borderRadius: "9px",
+
+    fontFamily: "inherit",
+    fontSize: "13px",
+    fontWeight: 700,
+
+    cursor: "pointer",
+    boxSizing: "border-box",
+  }}
+>
+  ← Back to Home
+</button>
 
           <button
             type="button"

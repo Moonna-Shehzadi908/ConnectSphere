@@ -213,13 +213,7 @@ export default function CreatePostPage() {
             💬 Messaging
           </li>
 
-          <li
-            onClick={() =>
-              navigate("/analytics")
-            }
-          >
-            📊 Analytics
-          </li>
+         
 
         
 

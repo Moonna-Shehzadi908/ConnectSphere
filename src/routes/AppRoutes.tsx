@@ -5,7 +5,6 @@ import HomeFeed from "../pages/HomeFeed";
 import SignUpPage from "../pages/SignUpPage";
 import SignInPage from "../pages/SignInPage";
 import MessagesPage from "../pages/MessagesPage";
-import AnalyticsPage from "../pages/AnalyticsPage";
 import ModerationPage from "../pages/ModerationPage";
 import CreatePostPage from "../pages/CreatePostPage";
 import ProfilePage from "../pages/ProfilePage";
@@ -19,7 +18,6 @@ export default function AppRoutes() {
       <Route path="/signup" element={<SignUpPage />} />
       <Route path="/signin" element={<SignInPage />} />
       <Route path="/messages" element={<MessagesPage />} />
-      <Route path="/analytics" element={<AnalyticsPage />} />
       <Route path="/moderation" element={<ModerationPage />} />
       <Route path="/create-post" element={<CreatePostPage />} />
       <Route path="/search" element={<SearchPage />} />

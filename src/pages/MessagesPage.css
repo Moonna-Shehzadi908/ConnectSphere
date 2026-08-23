@@ -1,6 +1,7 @@
 /* =========================================================
    CONNECTSPHERE - MESSAGES PAGE
    COMPLETE FIXED CSS
+   PART 1 / 2
    ========================================================= */
 
 .messagesPage,
@@ -34,48 +35,43 @@
     sans-serif;
 
   overflow: hidden;
-
   position: relative;
 }
 
-
 /* =========================================================
    LEFT APPLICATION SIDEBAR
-   IMPORTANT:
-   position: relative prevents another global sidebar
-   style from making it a floating overlay.
    ========================================================= */
 
 .messagesPage .sidebar {
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-  bottom: auto;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
 
-  width: 250px;
-  min-width: 250px;
-  max-width: 250px;
+  width: 250px !important;
+  min-width: 250px !important;
+  max-width: 250px !important;
 
-  height: 100vh;
-
-  flex: 0 0 250px;
+  height: 100vh !important;
+  flex: 0 0 250px !important;
 
   background: #ffffff;
-
   border-right: 1px solid #e5e7eb;
 
-  padding: 25px 20px;
+  padding: 25px 18px 18px;
 
   display: flex;
   flex-direction: column;
 
   overflow: hidden;
-  gap: 0;
 
-  z-index: 20;
+  margin: 0 !important;
+  transform: none !important;
+  float: none !important;
+
+  z-index: 20 !important;
 }
-
 
 /* =========================================================
    LOGO
@@ -86,7 +82,6 @@
 
   font-size: 25px;
   line-height: 1.2;
-
   font-weight: 800;
 
   color: #4f46e5;
@@ -94,19 +89,16 @@
   white-space: nowrap;
 }
 
-
 /* =========================================================
    SIDEBAR LIST
    ========================================================= */
 
 .messagesPage .sidebar ul {
   list-style: none;
-
   padding: 0;
   margin: 0;
 
   flex: 1;
-
   min-height: 0;
 }
 
@@ -115,16 +107,15 @@
 
   width: 100%;
 
-  padding: 13px 15px;
+  padding: 12px 14px;
+  margin-bottom: 6px;
 
-  margin-bottom: 7px;
-
-  border-radius: 12px;
+  border-radius: 11px;
 
   color: #374151;
+  background: transparent;
 
   font-size: 14px;
-
   font-weight: 600;
 
   cursor: pointer;
@@ -132,44 +123,53 @@
   transition:
     background 0.2s ease,
     color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
+
+/* Sidebar hover */
 
 .messagesPage .sidebar li:hover {
   background: #eef2ff;
-
   color: #4f46e5;
 
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
+
+/* Active sidebar item */
 
 .messagesPage .sidebar li.active {
   background: #4f46e5;
-
   color: #ffffff;
 
   box-shadow:
     0 5px 15px rgba(79, 70, 229, 0.18);
 }
 
+/* Active hover */
+
+.messagesPage .sidebar li.active:hover {
+  background: #4338ca;
+  color: #ffffff;
+
+  transform: translateX(2px);
+}
 
 /* =========================================================
    SIDEBAR BUTTONS
    ========================================================= */
 
-/* =========================================================
-   SIDEBAR BUTTONS
-========================================================= */
-
 .messagesPage .createBtn,
 .messagesPage .logoutBtn {
   width: 100%;
+
   flex-shrink: 0;
 
   border: none;
-  border-radius: 12px;
+  border-radius: 11px;
 
-  padding: 13px 15px;
+  padding: 12px 15px;
+
   margin: 0;
 
   font-family: inherit;
@@ -179,54 +179,64 @@
   cursor: pointer;
 
   transition:
+    background 0.2s ease,
     transform 0.2s ease,
-    background 0.2s ease;
+    box-shadow 0.2s ease;
 }
 
 /* Create button */
+
 .messagesPage .createBtn {
   background: #4f46e5;
   color: #ffffff;
 
-  margin-top: 20px;
+  margin-top: 12px;
+  margin-bottom: 6px;
 }
 
 .messagesPage .createBtn:hover {
   background: #4338ca;
+
   transform: translateY(-1px);
+
+  box-shadow:
+    0 5px 12px rgba(79, 70, 229, 0.18);
 }
 
 /* Logout button */
+
 .messagesPage .logoutBtn {
-  background: #ed0537;
+  background: #ef4444;
   color: #ffffff;
 
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .messagesPage .logoutBtn:hover {
-  background: #0b07ce;
-  transform: translateY(-1px);
-}
+  background: #dc2626;
 
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 5px 12px rgba(239, 68, 68, 0.18);
+}
 
 /* =========================================================
    CONVERSATION LIST PANEL
    ========================================================= */
 
 .messagesPage .messagesListPanel {
-  position: relative;
+  position: relative !important;
 
-  width: 340px;
-  min-width: 340px;
-  max-width: 340px;
+  width: 340px !important;
+  min-width: 340px !important;
+  max-width: 340px !important;
 
-  height: 100vh;
+  height: 100vh !important;
 
-  flex: 0 0 340px;
+  flex: 0 0 340px !important;
 
   background: #ffffff;
-
   border-right: 1px solid #e5e7eb;
 
   display: flex;
@@ -234,9 +244,12 @@
 
   overflow: hidden;
 
-  z-index: 5;
-}
+  margin: 0 !important;
+  transform: none !important;
+  float: none !important;
 
+  z-index: 5 !important;
+}
 
 /* =========================================================
    MESSAGES HEADER
@@ -248,9 +261,7 @@
   flex-shrink: 0;
 
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
 
   padding: 18px 20px;
@@ -264,7 +275,6 @@
   margin: 0;
 
   font-size: 22px;
-
   font-weight: 750;
 
   color: #111827;
@@ -275,15 +285,12 @@
   height: 40px;
 
   border: none;
-
   border-radius: 50%;
 
   background: #eef2ff;
-
   color: #4f46e5;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
@@ -299,12 +306,10 @@
 
 .messagesPage .newMessageButton:hover {
   background: #4f46e5;
-
   color: #ffffff;
 
   transform: scale(1.06);
 }
-
 
 /* =========================================================
    CONVERSATION SEARCH
@@ -318,7 +323,6 @@
   flex-shrink: 0;
 
   display: flex;
-
   align-items: center;
 }
 
@@ -336,11 +340,9 @@
 
 .messagesPage .conversationSearchWrapper input {
   width: 100%;
-
   height: 44px;
 
   border: 1px solid #e5e7eb;
-
   border-radius: 13px;
 
   outline: none;
@@ -350,7 +352,6 @@
   padding: 0 15px 0 40px;
 
   font-family: inherit;
-
   font-size: 13px;
 
   color: #1f2937;
@@ -374,7 +375,6 @@
   color: #9ca3af;
 }
 
-
 /* =========================================================
    ERROR
    ========================================================= */
@@ -393,10 +393,8 @@
   color: #dc2626;
 
   font-size: 12px;
-
   line-height: 1.4;
 }
-
 
 /* =========================================================
    CONVERSATION LIST
@@ -437,18 +435,15 @@
   background: #9ca3af;
 }
 
-
 /* =========================================================
    CONVERSATION ITEM
    ========================================================= */
 
 .messagesPage .conversationItem {
   width: 100%;
-
   min-height: 78px;
 
   border: none;
-
   border-bottom: 1px solid #f1f5f9;
 
   background: #ffffff;
@@ -456,7 +451,6 @@
   padding: 12px 15px;
 
   display: flex;
-
   align-items: center;
 
   gap: 12px;
@@ -484,7 +478,6 @@
   padding-left: 12px;
 }
 
-
 /* =========================================================
    CONVERSATION AVATAR
    ========================================================= */
@@ -506,7 +499,6 @@
   border: 1px solid #e5e7eb;
 }
 
-
 /* =========================================================
    CONVERSATION INFO
    ========================================================= */
@@ -521,7 +513,6 @@
   display: flex;
 
   align-items: center;
-
   justify-content: space-between;
 
   gap: 8px;
@@ -539,7 +530,6 @@
   color: #111827;
 
   font-size: 14px;
-
   font-weight: 700;
 }
 
@@ -557,7 +547,6 @@
   display: flex;
 
   align-items: center;
-
   justify-content: space-between;
 
   gap: 8px;
@@ -579,7 +568,6 @@
 
 .messagesPage .unreadBadge {
   min-width: 20px;
-
   height: 20px;
 
   padding: 0 6px;
@@ -595,14 +583,11 @@
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   font-size: 10px;
-
   font-weight: 700;
 }
-
 
 /* =========================================================
    EMPTY / LOADING STATES
@@ -648,31 +633,35 @@
   background: #e0e7ff;
 }
 
-
 /* =========================================================
    MAIN CHAT PANEL
    ========================================================= */
 
 .messagesPage .chatPanel {
-  flex: 1;
+  position: relative !important;
+
+  flex: 1 1 auto !important;
 
   min-width: 0;
 
-  height: 100vh;
+  width: auto !important;
+
+  height: 100vh !important;
 
   display: flex;
-
   flex-direction: column;
 
   background: #f7f8fc;
 
   overflow: hidden;
 
-  position: relative;
+  margin: 0 !important;
 
-  z-index: 1;
+  transform: none !important;
+  float: none !important;
+
+  z-index: 1 !important;
 }
-
 
 /* =========================================================
    EMPTY CHAT
@@ -770,7 +759,6 @@
 
   transform: translateY(-1px);
 }
-
 
 /* =========================================================
    CHAT HEADER
@@ -889,7 +877,6 @@
   transform: scale(1.05);
 }
 
-
 /* =========================================================
    CHAT MESSAGES
    ========================================================= */
@@ -935,7 +922,6 @@
   justify-content: flex-start;
 }
 
-
 /* =========================================================
    MESSAGE AVATAR
    ========================================================= */
@@ -954,7 +940,6 @@
 
   border: 1px solid #e5e7eb;
 }
-
 
 /* =========================================================
    MESSAGE BUBBLE
@@ -999,8 +984,9 @@
   font-size: 14px;
 
   line-height: 1.5;
-}
 
+  user-select: text;
+}
 
 /* =========================================================
    ATTACHMENT
@@ -1035,7 +1021,6 @@
 .messagesPage .messageAttachment:hover {
   text-decoration: underline;
 }
-
 
 /* =========================================================
    MESSAGE META
@@ -1089,8 +1074,11 @@
   background: rgba(255, 255, 255, 0.15);
 
   opacity: 1;
-}
-
+}/* =========================================================
+   CONNECTSPHERE - MESSAGES PAGE
+   COMPLETE FIXED CSS
+   PART 2 / 2
+   ========================================================= */
 
 /* =========================================================
    COMPOSER
@@ -1109,7 +1097,6 @@
 
   z-index: 5;
 }
-
 
 /* =========================================================
    ATTACHMENT PREVIEW
@@ -1170,7 +1157,6 @@
   font-size: 12px;
 }
 
-
 /* =========================================================
    COMPOSER ROW
    ========================================================= */
@@ -1184,6 +1170,10 @@
 
   gap: 7px;
 }
+
+/* =========================================================
+   COMPOSER ICON BUTTON
+   ========================================================= */
 
 .messagesPage .composerIconButton {
   width: 40px;
@@ -1216,7 +1206,6 @@
 
   transform: scale(1.05);
 }
-
 
 /* =========================================================
    MESSAGE INPUT
@@ -1264,7 +1253,6 @@
   color: #9ca3af;
 }
 
-
 /* =========================================================
    SEND BUTTON
    ========================================================= */
@@ -1311,7 +1299,6 @@
   transform: none;
 }
 
-
 /* =========================================================
    EMOJI WRAPPER
    ========================================================= */
@@ -1322,7 +1309,6 @@
   flex-shrink: 0;
 }
 
-
 /* =========================================================
    EMOJI PICKER
    ========================================================= */
@@ -1331,7 +1317,6 @@
   position: absolute;
 
   bottom: 53px;
-
   left: 0;
 
   width: 350px;
@@ -1448,7 +1433,6 @@
   transform: scale(1.15);
 }
 
-
 /* =========================================================
    NEW CONVERSATION OVERLAY
    ========================================================= */
@@ -1465,14 +1449,12 @@
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   padding: 20px;
 
   z-index: 999;
 }
-
 
 /* =========================================================
    NEW CONVERSATION MODAL
@@ -1498,7 +1480,6 @@
 
   flex-direction: column;
 }
-
 
 /* =========================================================
    NEW CONVERSATION HEADER
@@ -1561,7 +1542,6 @@
   color: #dc2626;
 }
 
-
 /* =========================================================
    NEW USER SEARCH
    ========================================================= */
@@ -1618,7 +1598,6 @@
   box-shadow:
     0 0 0 3px rgba(99, 102, 241, 0.08);
 }
-
 
 /* =========================================================
    USERS LIST
@@ -1735,28 +1714,27 @@
   color: #4f46e5;
 }
 
-
 /* =========================================================
    RESPONSIVE - 1200px
    ========================================================= */
 
 @media (max-width: 1200px) {
   .messagesPage .sidebar {
-    width: 220px;
-    min-width: 220px;
-    max-width: 220px;
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
 
-    flex-basis: 220px;
+    flex-basis: 220px !important;
 
     padding: 22px 16px;
   }
 
   .messagesPage .messagesListPanel {
-    width: 310px;
-    min-width: 310px;
-    max-width: 310px;
+    width: 310px !important;
+    min-width: 310px !important;
+    max-width: 310px !important;
 
-    flex-basis: 310px;
+    flex-basis: 310px !important;
   }
 
   .messagesPage .logo {
@@ -1768,28 +1746,27 @@
   }
 }
 
-
 /* =========================================================
    RESPONSIVE - 992px
    ========================================================= */
 
 @media (max-width: 992px) {
   .messagesPage .sidebar {
-    width: 190px;
-    min-width: 190px;
-    max-width: 190px;
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
 
-    flex-basis: 190px;
+    flex-basis: 190px !important;
 
     padding: 20px 13px;
   }
 
   .messagesPage .messagesListPanel {
-    width: 290px;
-    min-width: 290px;
-    max-width: 290px;
+    width: 290px !important;
+    min-width: 290px !important;
+    max-width: 290px !important;
 
-    flex-basis: 290px;
+    flex-basis: 290px !important;
   }
 
   .messagesPage .logo {
@@ -1807,7 +1784,6 @@
   }
 }
 
-
 /* =========================================================
    RESPONSIVE - 768px
    ========================================================= */
@@ -1818,15 +1794,15 @@
   }
 
   .messagesPage .sidebar {
-    display: none;
+    display: none !important;
   }
 
   .messagesPage .messagesListPanel {
-    width: 280px;
-    min-width: 280px;
-    max-width: 280px;
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
 
-    flex-basis: 280px;
+    flex-basis: 280px !important;
   }
 
   .messagesPage .chatMessages {
@@ -1850,7 +1826,6 @@
   }
 }
 
-
 /* =========================================================
    RESPONSIVE - 600px
    ========================================================= */
@@ -1863,11 +1838,12 @@
   }
 
   .messagesPage .messagesListPanel {
-    width: 100%;
-    min-width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
 
     height: 42vh;
+
     min-height: 250px;
 
     flex: 0 0 42vh;
@@ -1878,7 +1854,7 @@
   }
 
   .messagesPage .chatPanel {
-    width: 100%;
+    width: 100% !important;
 
     height: 58vh;
 
@@ -1999,7 +1975,6 @@
   }
 }
 
-
 /* =========================================================
    RESPONSIVE - 420px
    ========================================================= */
@@ -2080,7 +2055,6 @@
   }
 }
 
-
 /* =========================================================
    ACCESSIBILITY / BUTTON CLEANUP
    ========================================================= */
@@ -2096,7 +2070,6 @@
   outline-offset: 2px;
 }
 
-
 /* =========================================================
    IMAGE
    ========================================================= */
@@ -2105,7 +2078,6 @@
   max-width: 100%;
 }
 
-
 /* =========================================================
    TEXT SELECTION
    ========================================================= */
@@ -2113,117 +2085,65 @@
 .messagesPage .messageContent {
   user-select: text;
 }
-/* =========================================================
-   CONNECTSPHERE - MESSAGES PAGE SIDEBAR FIX
-   Prevent global sidebar from overlapping Messages layout
-   ========================================================= */
-
-.messagesPage {
-  position: relative !important;
-  display: flex !important;
-  flex-direction: row !important;
-  width: 100% !important;
-  height: 100vh !important;
-  min-height: 600px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-
-/* LEFT APPLICATION SIDEBAR */
-.messagesPage > .sidebar {
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-
-  width: 250px !important;
-  min-width: 250px !important;
-  max-width: 250px !important;
-
-  height: 100vh !important;
-  flex: 0 0 250px !important;
-
-  margin: 0 !important;
-  transform: none !important;
-
-  z-index: 20 !important;
-}
-
-/* MESSAGES / CHAT SIDEBAR */
-.messagesPage > .messagesListPanel {
-  position: relative !important;
-
-  width: 340px !important;
-  min-width: 340px !important;
-  max-width: 340px !important;
-
-  height: 100vh !important;
-  flex: 0 0 340px !important;
-
-  margin: 0 !important;
-  transform: none !important;
-
-  z-index: 5 !important;
-}
-
-/* MAIN CHAT MUST STAY ON RIGHT */
-.messagesPage > .chatPanel {
-  position: relative !important;
-
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-
-  width: auto !important;
-  height: 100vh !important;
-
-  margin: 0 !important;
-  transform: none !important;
-
-  z-index: 1 !important;
-}
-
-/* IMPORTANT:
-   Don't allow any global sidebar rule to affect children */
-.messagesPage .sidebar {
-  position: relative !important;
-  float: none !important;
-  transform: none !important;
-}
-
-/* Prevent global main/container positioning */
-.messagesPage .messagesListPanel,
-.messagesPage .chatPanel {
-  float: none !important;
-}
 
 /* =========================================================
-   DESKTOP STRUCTURE
-
-   [ APP SIDEBAR ] [ MESSAGES LIST ] [ CHAT ]
+   FINAL LAYOUT PROTECTION
    ========================================================= */
+
+/*
+   Desktop structure:
+
+   [ APPLICATION SIDEBAR ]
+   [ CONVERSATION LIST ]
+   [ CHAT PANEL ]
+*/
 
 @media (min-width: 769px) {
-
   .messagesPage {
     display: flex !important;
+
     flex-direction: row !important;
+
     align-items: stretch !important;
   }
 
   .messagesPage > .sidebar {
     display: flex !important;
+
     flex-direction: column !important;
+
+    position: relative !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
   }
 
   .messagesPage > .messagesListPanel {
     display: flex !important;
+
     flex-direction: column !important;
+
+    position: relative !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
   }
 
   .messagesPage > .chatPanel {
     display: flex !important;
+
     flex-direction: column !important;
+
+    position: relative !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
+
+    flex: 1 1 auto !important;
+
+    min-width: 0 !important;
   }
 }

@@ -109,3 +109,90 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+/* =========================================================
+   LEFT SIDEBAR
+========================================================= */
+
+.sidebar {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  width: 220px;
+  height: calc(100vh - 48px);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px 18px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(31, 41, 55, 0.08);
+  z-index: 20;
+}
+
+.logo {
+  margin: 0 0 26px;
+  padding-left: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.sidebar li {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease,
+    padding-left 0.25s ease;
+}
+
+.sidebar li:hover {
+  background: #270bda;
+  color: #eeeef3;
+  transform: translateX(4px);
+  padding-left: 17px;
+}
+
+.sidebar li.active {
+  background: #eef0ff;
+  color: #4f46e5;
+  box-shadow: inset 3px 0 0 #4f46e5;
+}
+
+.createBtn,
+.logoutBtn {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 9px;
+  color: #eae8e8;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.createBtn {
+  margin-top: auto;
+  background: #4f46e5;
+}
+
+.logoutBtn {
+  margin-top: 10px;
+  background: #ef4444;
+}
