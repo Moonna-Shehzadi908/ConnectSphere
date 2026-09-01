@@ -927,12 +927,7 @@ export default function MessagesPage() {
           await api.post(
             "/messaging/",
             formData,
-            {
-              headers: {
-                "Content-Type":
-                  "multipart/form-data",
-              },
-            }
+            
           );
 
         const sentAttachment =

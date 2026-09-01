@@ -9,27 +9,20 @@ import { useNavigate } from "react-router-dom";
 
 export default function LandingPage() {
   const navigate = useNavigate();
-
   const [menuOpen, setMenuOpen] = useState(false);
 
-  /*
-   * Check whether user is logged in.
-   * Your existing login system stores the user in localStorage.
-   */
+  // Check whether the user is logged in
   const isLoggedIn = () => {
     const user = localStorage.getItem("user");
     return !!user;
   };
 
-  /*
-   * Protected actions
-   *
-   * User must sign in before accessing the actual
-   * ConnectSphere application.
-   */
+  // Protected navigation
   const requireLogin = (path: string) => {
     if (!isLoggedIn()) {
-      alert("Please Sign In or create an account first to access ConnectSphere.");
+      alert(
+        "Please Sign In or create an account first to access ConnectSphere."
+      );
       navigate("/signin");
       return;
     }
@@ -37,9 +30,7 @@ export default function LandingPage() {
     navigate(path);
   };
 
-  /*
-   * Scroll to landing-page sections
-   */
+  // Scroll to a landing-page section
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({
       behavior: "smooth",
@@ -49,52 +40,80 @@ export default function LandingPage() {
     setMenuOpen(false);
   };
 
-  /*
-   * Close menu
-   */
+  // Close mobile/dropdown menu
   const closeMenu = () => {
     setMenuOpen(false);
+  };
+
+  // Scroll to top
+  const goHome = () => {
+    closeMenu();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   return (
     <div className="page">
 
       {/* =====================================================
+          BACKGROUND DECORATION
+      ===================================================== */}
+
+      <div className="ambient ambientOne" />
+      <div className="ambient ambientTwo" />
+      <div className="ambient ambientThree" />
+
+      {/* =====================================================
           TOP HEADER
       ===================================================== */}
+
       <header className="topHeader">
 
         {/* MENU BUTTON */}
+
         <button
           className={`menu ${menuOpen ? "menuActive" : ""}`}
           onClick={() => setMenuOpen((prev) => !prev)}
           aria-label="Open navigation menu"
           aria-expanded={menuOpen}
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span />
+          <span />
+          <span />
         </button>
 
         {/* PAGE TITLE */}
-        <h1 className="title">
-          ConnectSphere Social Hub
-        </h1>
+
+        <div className="titleWrap">
+          <span className="titleDot" />
+          <h1 className="title">
+            ConnectSphere
+          </h1>
+          <span className="titleLabel">
+            Social Hub
+          </span>
+        </div>
 
         {/* SIGN IN */}
+
         <button
           className="signBtn"
           onClick={() => navigate("/signin")}
         >
-          Sign In
+          <span>Sign In</span>
+          <span className="signArrow">↗</span>
         </button>
 
       </header>
 
 
       {/* =====================================================
-          VERTICAL DROPDOWN MENU
+          DROPDOWN MENU
       ===================================================== */}
+
       {menuOpen && (
         <>
           <div
@@ -104,24 +123,27 @@ export default function LandingPage() {
 
           <div className="landingMenu">
 
-            <button
-              onClick={() => {
-                closeMenu();
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth",
-                });
-              }}
-            >
-              <span>🏠</span>
-              Home
+            <div className="menuHeader">
+              <span>Navigation</span>
+              <button
+                className="menuClose"
+                onClick={closeMenu}
+                aria-label="Close menu"
+              >
+                ×
+              </button>
+            </div>
+
+            <button onClick={goHome}>
+              <span className="menuIcon">⌂</span>
+              <span>Home</span>
             </button>
 
             <button
               onClick={() => scrollToSection("features")}
             >
-              <span>✨</span>
-              Features
+              <span className="menuIcon">✦</span>
+              <span>Features</span>
             </button>
 
             <button
@@ -130,15 +152,15 @@ export default function LandingPage() {
                 requireLogin("/home");
               }}
             >
-              <span>👥</span>
-              Community
+              <span className="menuIcon">◉</span>
+              <span>Community</span>
             </button>
 
             <button
               onClick={() => scrollToSection("about")}
             >
-              <span>ℹ️</span>
-              About
+              <span className="menuIcon">i</span>
+              <span>About</span>
             </button>
 
             <button
@@ -147,8 +169,8 @@ export default function LandingPage() {
                 navigate("/signin");
               }}
             >
-              <span>🔐</span>
-              Sign In
+              <span className="menuIcon">↪</span>
+              <span>Sign In</span>
             </button>
 
           </div>
@@ -157,40 +179,41 @@ export default function LandingPage() {
 
 
       {/* =====================================================
-          MAIN CARD
+          MAIN LANDING CARD
       ===================================================== */}
-      <section className="card">
+
+      <main className="card">
 
         {/* ===================================================
             NAVBAR
         =================================================== */}
+
         <div className="navBar">
 
           {/* LOGO */}
+
           <button
             className="logo"
-            onClick={() => {
-              window.scrollTo({
-                top: 0,
-                behavior: "smooth",
-              });
-            }}
+            onClick={goHome}
+            aria-label="Go to home"
           >
-            ConnectSphere
+            <span className="logoMark">
+              C
+            </span>
+
+            <span className="logoText">
+              Connect<span>Sphere</span>
+            </span>
           </button>
 
 
-          {/* NAV LINKS */}
+          {/* NAVIGATION */}
+
           <nav className="navLinks">
 
             <button
-              className="navBtn"
-              onClick={() => {
-                window.scrollTo({
-                  top: 0,
-                  behavior: "smooth",
-                });
-              }}
+              className="navBtn activeNav"
+              onClick={goHome}
             >
               Home
             </button>
@@ -215,52 +238,60 @@ export default function LandingPage() {
             >
               About
             </button>
-            
 
           </nav>
 
 
-          {/* HEADER ICONS */}
+          {/* HEADER ACTIONS */}
+
           <div className="icons">
-              {/* SEARCH */}
 
-            <button
-    className="iconBtn"
-    onClick={() => requireLogin("/search")}
-    title="Search"
-    aria-label="Search"
-  >
-    🔍
-  </button>
+            {/* SEARCH */}
 
-            {/* NOTIFICATIONS */}
             <button
               className="iconBtn"
+              onClick={() => requireLogin("/search")}
+              title="Search"
+              aria-label="Search"
+            >
+              <span>⌕</span>
+            </button>
+
+
+            {/* NOTIFICATIONS */}
+
+            <button
+              className="iconBtn notificationBtn"
               onClick={() => requireLogin("/notifications")}
               title="Notifications"
               aria-label="Notifications"
             >
-              🔔
+              <span>♢</span>
+              <i />
             </button>
 
+
             {/* MESSAGES */}
+
             <button
               className="iconBtn"
               onClick={() => requireLogin("/messages")}
               title="Messages"
               aria-label="Messages"
             >
-              ✉️
+              <span>✉</span>
             </button>
 
+
             {/* PROFILE */}
+
             <button
-              className="iconBtn"
+              className="iconBtn profileBtn"
               onClick={() => requireLogin("/profile")}
               title="Profile"
               aria-label="Profile"
             >
-              👤
+              <span>◯</span>
             </button>
 
           </div>
@@ -269,204 +300,396 @@ export default function LandingPage() {
 
 
         {/* =====================================================
-            HERO
+            HERO SECTION
         ===================================================== */}
-        <div className="heroText">
 
-          <div className="heroBadge">
-            ✦ Connect. Create. Grow.
-          </div>
+        <section className="hero">
 
-          <h2>
-            Where Creative Minds
-            <br />
-            <span>Collide and Grow.</span>
-          </h2>
+          {/* HERO TEXT */}
 
-          <p>
-            ConnectSphere is a next-generation social ecosystem
-            for creators, leaders, and innovators.
-          </p>
+          <div className="heroText">
 
+            <div className="heroBadge">
+              <span className="badgeSpark">✦</span>
 
-          <div className="buttons">
+              <span>
+                Connect. Create. Grow.
+              </span>
 
-            {/* JOIN NETWORK */}
-            <button
-              className="primaryBtn"
-              onClick={() => requireLogin("/home")}
-            >
-              Join The Network
-              <span>→</span>
-            </button>
-
-
-            {/* EXPLORE COMMUNITIES */}
-            <button
-              className="secondaryBtn"
-              onClick={() => requireLogin("/home")}
-            >
-              Explore Communities
-              <span>→</span>
-            </button>
-
-          </div>
-
-        </div>
-
-
-        {/* =====================================================
-            HERO IMAGE
-        ===================================================== */}
-        <div className="imageBox">
-
-          <img
-            src={heroImage}
-            alt="ConnectSphere community"
-          />
-
-          <div className="floatingCard">
-
-            <div className="liveIcon">
-              ⚡
+              <span className="badgeLive">
+                LIVE
+              </span>
             </div>
 
-            <div>
-              <strong>
-                Live Connection
-              </strong>
 
-              <p>
-                2.6k users active right now
-              </p>
+            <h2>
+              Where Creative
+              <br />
+
+              <span>
+                Minds Collide.
+              </span>
+            </h2>
+
+
+            <p>
+              A next-generation social ecosystem built for
+              creators, leaders, professionals, and innovators
+              who want to connect, collaborate, and grow together.
+            </p>
+
+
+            {/* HERO BUTTONS */}
+
+            <div className="buttons">
+
+              <button
+                className="primaryBtn"
+                onClick={() => requireLogin("/home")}
+              >
+                <span>Join The Network</span>
+                <span className="btnArrow">→</span>
+              </button>
+
+
+              <button
+                className="secondaryBtn"
+                onClick={() => requireLogin("/home")}
+              >
+                <span className="playIcon">▶</span>
+                <span>Explore Communities</span>
+              </button>
+
+            </div>
+
+
+            {/* HERO TRUST */}
+
+            <div className="heroTrust">
+
+              <div className="avatarStack">
+                <span>U</span>
+                <span>C</span>
+                <span>D</span>
+                <span>+</span>
+              </div>
+
+              <div className="trustText">
+                <strong>2.6k+</strong>
+                <span>people connecting today</span>
+              </div>
+
             </div>
 
           </div>
 
-        </div>
+
+          {/* =================================================
+              HERO VISUAL
+          ================================================= */}
+
+          <div className="imageBox">
+
+            <div className="imageGlow" />
+
+            <div className="imageFrame">
+
+              <img
+                src={heroImage}
+                alt="ConnectSphere community"
+              />
+
+              <div className="imageOverlay" />
+
+            </div>
+
+
+            {/* LIVE CONNECTION CARD */}
+
+            <div className="floatingCard">
+
+              <div className="liveIcon">
+                <span />
+              </div>
+
+              <div>
+                <strong>
+                  Live Connection
+                </strong>
+
+                <p>
+                  2.6k users active right now
+                </p>
+              </div>
+
+              <span className="floatingArrow">
+                ↗
+              </span>
+
+            </div>
+
+
+            {/* FLOATING STATUS */}
+
+            <div className="floatingStatus">
+
+              <span className="statusPulse" />
+
+              <div>
+                <strong>
+                  Network Status
+                </strong>
+
+                <small>
+                  All systems active
+                </small>
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
 
 
         {/* =====================================================
             ABOUT / INTRO
         ===================================================== */}
-        <div
+
+        <section
           className="bottom"
           id="about"
         >
 
-          <div className="sectionLine"></div>
+          <div className="sectionEyebrow">
+            <span />
+            WHY CONNECTSPHERE
+            <span />
+          </div>
 
           <h3>
-            Designed for Impact
+            Designed for <span>Impact.</span>
           </h3>
 
           <p>
-            Modern tools for modern creators & professionals
+            Modern tools for modern creators & professionals.
           </p>
 
-        </div>
+        </section>
 
-      </section>
+      </main>
 
 
       {/* =====================================================
           FEATURES
       ===================================================== */}
+
       <section
         className="featuresSection"
         id="features"
       >
 
-        {/* FEATURE 1 */}
-        <div className="featureCard">
+        {/* SECTION HEADER */}
 
-          <div className="featureIcon">
-            ✦
+        <div className="featuresHeader">
+
+          <div>
+            <span className="sectionTag">
+              ✦ BUILT FOR CONNECTION
+            </span>
+
+            <h3>
+              Everything you need to
+              <span> grow together.</span>
+            </h3>
           </div>
 
-          <h4>
-            Infinite Connections
-          </h4>
-
           <p>
-            Expand your network.
+            Powerful social tools designed to turn
+            meaningful connections into real opportunities.
           </p>
 
         </div>
 
 
-        {/* FEATURE IMAGE */}
-        <div className="featureImage">
+        {/* FEATURE GRID */}
 
-          <img
-            src={feature1}
-            alt="ConnectSphere connections"
-          />
+        <div className="featureGrid">
 
-        </div>
+          {/* FEATURE 1 */}
+
+          <article className="featureCard">
+
+            <div className="featureTop">
+              <div className="featureIcon">
+                ✦
+              </div>
+
+              <span className="featureNumber">
+                01
+              </span>
+            </div>
+
+            <div className="featureContent">
+              <h4>
+                Infinite Connections
+              </h4>
+
+              <p>
+                Expand your network and discover people
+                who share your interests, goals, and vision.
+              </p>
+            </div>
+
+            <span className="featureArrow">
+              ↗
+            </span>
+
+          </article>
 
 
-        {/* FEATURE 2 */}
-        <div className="featureCard purple">
+          {/* FEATURE IMAGE 1 */}
 
-          <div className="featureIcon">
-            ✦
+          <div className="featureImage">
+
+            <img
+              src={feature1}
+              alt="ConnectSphere connections"
+            />
+
+            <div className="featureImageOverlay">
+
+              <span>
+                NETWORK
+              </span>
+
+              <strong>
+                Connect beyond limits.
+              </strong>
+
+            </div>
+
           </div>
 
-          <h4>
-            Unified Growth
-          </h4>
 
-          <p>
-            Collaborate on one platform.
-          </p>
+          {/* FEATURE 2 */}
 
-        </div>
+          <article className="featureCard purple">
+
+            <div className="featureTop">
+              <div className="featureIcon">
+                ◉
+              </div>
+
+              <span className="featureNumber">
+                02
+              </span>
+            </div>
+
+            <div className="featureContent">
+              <h4>
+                Unified Growth
+              </h4>
+
+              <p>
+                Collaborate, communicate, and build
+                meaningful relationships from one platform.
+              </p>
+            </div>
+
+            <span className="featureArrow">
+              ↗
+            </span>
+
+          </article>
 
 
-        {/* FEATURE 3 */}
-        <div className="featureCard">
+          {/* FEATURE 3 */}
 
-          <div className="featureIcon">
-            ▣
+          <article className="featureCard">
+
+            <div className="featureTop">
+              <div className="featureIcon">
+                ▣
+              </div>
+
+              <span className="featureNumber">
+                03
+              </span>
+            </div>
+
+            <div className="featureContent">
+              <h4>
+                Precision Analytics
+              </h4>
+
+              <p>
+                Track engagement and understand your
+                community with real-time insights.
+              </p>
+            </div>
+
+            <span className="featureArrow">
+              ↗
+            </span>
+
+          </article>
+
+
+          {/* FEATURE IMAGE 2 */}
+
+          <div className="featureImage">
+
+            <img
+              src={feature2}
+              alt="ConnectSphere analytics"
+            />
+
+            <div className="featureImageOverlay">
+
+              <span>
+                INSIGHTS
+              </span>
+
+              <strong>
+                Know your impact.
+              </strong>
+
+            </div>
+
           </div>
 
-          <h4>
-            Precision Analytics
-          </h4>
 
-          <p>
-            Track engagement in real time.
-          </p>
+          {/* FEATURE 4 */}
 
-        </div>
+          <article className="featureCard">
 
+            <div className="featureTop">
+              <div className="featureIcon">
+                ↗
+              </div>
 
-        {/* FEATURE IMAGE */}
-        <div className="featureImage">
+              <span className="featureNumber">
+                04
+              </span>
+            </div>
 
-          <img
-            src={feature2}
-            alt="ConnectSphere analytics"
-          />
+            <div className="featureContent">
+              <h4>
+                Exponential Growth
+              </h4>
 
-        </div>
+              <p>
+                Turn conversations into opportunities
+                and unlock your next level of growth.
+              </p>
+            </div>
 
+            <span className="featureArrow">
+              ↗
+            </span>
 
-        {/* FEATURE 4 */}
-        <div className="featureCard">
-
-          <div className="featureIcon">
-            ↗
-          </div>
-
-          <h4>
-            Exponential Growth
-          </h4>
-
-          <p>
-            Unlock opportunities.
-          </p>
+          </article>
 
         </div>
 
@@ -476,10 +699,14 @@ export default function LandingPage() {
       {/* =====================================================
           CTA
       ===================================================== */}
+
       <section
         className="ctaSection"
         id="cta"
       >
+
+        <div className="ctaGlow ctaGlowOne" />
+        <div className="ctaGlow ctaGlowTwo" />
 
         <div className="ctaContent">
 
@@ -488,24 +715,58 @@ export default function LandingPage() {
           </span>
 
           <h2>
-            Ready to scale your influence?
+            Ready to scale
+            <br />
+            your <span>influence?</span>
           </h2>
 
           <p>
-            Join ConnectSphere today.
+            Your next connection could become your
+            next opportunity.
           </p>
 
           <button
             className="primaryBtn ctaButton"
             onClick={() => navigate("/signup")}
           >
-            Get Started Now
-            <span>→</span>
+            <span>Get Started Now</span>
+            <span className="btnArrow">→</span>
           </button>
 
         </div>
 
       </section>
+
+
+      {/* =====================================================
+          FOOTER
+      ===================================================== */}
+
+      <footer className="landingFooter">
+
+        <div className="footerBrand">
+
+          <div className="footerLogo">
+            <span className="logoMark">
+              C
+            </span>
+
+            <span>
+              Connect<span>Sphere</span>
+            </span>
+          </div>
+
+          <p>
+            Connect. Create. Grow.
+          </p>
+
+        </div>
+
+        <div className="footerRight">
+          © {new Date().getFullYear()} ConnectSphere
+        </div>
+
+      </footer>
 
     </div>
   );
